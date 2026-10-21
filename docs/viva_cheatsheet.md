@@ -15,7 +15,7 @@ Shops have thousands of old CNC programs and no CAD files. Nobody knows what eac
 
 ## How each part works (be able to draw these)
 
-**1. Parser.** A modal state machine. G-code is *modal*: `G1` stays active until another motion code appears, so a line like `X10` still means "feed to X10". We track motion mode, units, absolute/incremental mode, feed, spindle, tool and canned-cycle state. Arcs are cut into short straight chords (0.05 mm tolerance). Canned cycles are expanded into rapid → R-plane → feed to depth → retract. Anything we cannot execute properly (G41/G42 cutter comp, macros `#1=…`, external subprograms, lathe code) produces a **warning instead of a guess**.
+**1. Parser.** A modal state machine. G-code is *modal*: `G1` stays active until another motion code appears, so a line like `X10` still means "feed to X10". We track motion mode, units, absolute/incremental mode, feed, spindle, tool and canned-cycle state. Arcs are cut into short straight chords (0.05 mm tolerance). Canned cycles are expanded into rapid → R-plane → feed to depth → retract. A **macro layer** first executes parametric programs: variables (`#1`, `#<scale>`), expressions in `[…]`, loops (`repeat`, `while`, Fanuc `WHILE…DO`), if/else and subroutines with arguments, plus polar coordinates (`@` radius, `^` angle). Anything we cannot execute properly (G41/G42 cutter comp, subprograms in other files, lathe code) produces a **warning instead of a guess**.
 
 **2. Dexel simulation.** The stock is a 2D grid of heights (one height per 0.25 mm cell: a "height map", or 2.5D dexel model). For every cutting move we lower each cell under the cutter to the cutter's tip height plus its profile:
 - flat end mill: profile 0
@@ -88,12 +88,14 @@ Cycle time = Σ(length / feed) + rapids at 10 m/min + 8 s per tool change.
 | HDBSCAN | 10 dense families, ARI 0.815 on inliers, 12.7% flagged unusual | |
 | Tool inference (comment-free dialect) | covers 55.5% of milling tools; 43% exact, 82% within one standard size | |
 | Runtime | 1.7 s per program on average | |
+| Real LinuxCNC programs (15, unmodified) | 13 analysed, 2 correctly rejected (not part programs) | qualitative, no ground truth |
 
 **Honest weak spots to admit if asked:**
 - When tool sizes default, accuracy drops (IoU 0.71).
 - Step recall is 0.80.
 - Slot precision is 0.83: some pockets get called slots.
-- Two hand-written programs were mislabelled (pockets at the edge of an unfaced part were called steps).
+- One hand-written program was mislabelled (pockets at the edge of an unfaced part were called steps).
+- Real files rarely state tool sizes, so their dimensions rely on the default.
 
 ## Likely questions and answers
 1. **"Isn't the data fake?"** The benchmark is synthetic, and the paper says so openly. That's standard when no labelled public dataset exists, and it gives exact ground truth. We made it hard on purpose: 4 dialects, random rotation and origin, missing tool comments. We tuned on one dataset (seed 7) and reported on a separate held-out one (seed 11). We also tested hand-written vendor programs that our generator did not produce.
@@ -105,4 +107,5 @@ Cycle time = Σ(length / feed) + rapids at 10 m/min + 8 s per tool change.
 7. **"Accuracy of tool inference?"** Report coverage, exact match and within-one-size from the results. Drills can't be inferred from geometry, because a hole looks the same whatever its history.
 8. **"How is this CIM?"** It reconnects the broken CAD → CAPP → CAM → CNC chain *backwards*: CNC program → recovered geometry → process plan → GT family. STEP-NC export would close the loop.
 9. **"Runtime?"** About a second per program on a laptop, run in parallel across CPU cores.
-10. **"What would you do next?"** Validate on a real shop archive, add 5-axis (tri-dexel), execute Macro B, and export STEP-NC.
+10. **"What would you do next?"** Validate on a labelled shop archive, add 5-axis (tri-dexel), resolve cutter compensation, and export STEP-NC.
+11. **"Did you test on real files?"** Yes: 15 unmodified open-source programs from the LinuxCNC project. 13 analysed; the other 2 aren't part programs and are rejected. Results match what the files' own comments say: 26 holes in `polar`, a 3-inch bolt circle measured as PCD 76 mm, and the motor mount and 3D carving recognisable. Those real files showed us features the synthetic data lacked (parameters, loops, polar coordinates), and we extended the interpreter to run them. There's no family ground truth for them, so this check is qualitative.

@@ -29,7 +29,7 @@ function steps(ctx) {
       notes: "This is CAPP (Module 5). Each tool block is classified from what it removed: shallow over the whole top is facing, a ring around the part is profiling, plunges only is drilling. An 'inferred' badge means the tool size wasn't written and was estimated from the step-over." },
     { page: "explorer", target: "#p-tabs", run: async () => { ctx.stopSim(); ctx.showTab("gcode"); },
       say: "This is the original program. If you <b>hover over any line</b>, it explains it in plain English. For example, G83 is a peck-drilling cycle.",
-      notes: "The parser is a modal state machine following ISO 6983: it tracks motion mode, units, absolute/incremental, tool and canned-cycle state. Unsupported things like G41 cutter compensation or macros give a warning instead of a guess." },
+      notes: "The parser is a modal state machine following ISO 6983: it tracks motion mode, units, absolute/incremental, tool and canned-cycle state. It also executes parametric programs (variables, expressions, loops, subroutines, polar coordinates). Things it can't run faithfully, like G41 cutter compensation or subprograms in other files, give a warning instead of a guess." },
     { page: "explorer", target: "#p-tabs", run: async () => ctx.showTab("similar"),
       say: "And it answers the question every shop asks: <b>have we made something like this before?</b> These are the closest programs in the archive, ranked by similarity.",
       notes: "Cosine similarity over fingerprints. On the test set, 94% of the top-5 results are the correct family (P@5 = 0.939). 'Compare side by side' shows how different the texts are." },

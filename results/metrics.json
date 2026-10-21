@@ -291,23 +291,19 @@
       "operations": [
         "pocketing"
       ],
-      "warnings": [
-        "Unsupported code G64 ignored"
-      ],
+      "warnings": [],
       "cycle_time_s": 29.1
     },
     {
       "file": "macro_bolt_circle.nc",
-      "lines": 26,
-      "description": "1x step",
+      "lines": 24,
+      "description": "6x hole \u00d87 on PCD 80, 1x circular pocket",
       "operations": [
         "drilling",
-        "step_milling"
+        "bore"
       ],
-      "warnings": [
-        "Macro variables / control flow (#, IF, WHILE) not executed; geometry may be incomplete"
-      ],
-      "cycle_time_s": 43.4
+      "warnings": [],
+      "cycle_time_s": 79.8
     }
   ]
 }

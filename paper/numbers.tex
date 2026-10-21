@@ -90,9 +90,21 @@ pocket & 582 & 0.974 & 0.909 \\
 pocket island & 75 & 0.904 & 1.000 \\
 slot & 262 & 0.834 & 1.000 \\
 step & 187 & 0.955 & 0.797 \\}
-\newcommand{\HandRows}{\texttt{fanuc\_\allowbreak cutter\_\allowbreak comp} (32 lines) & 4x hole $\varnothing$9, 1x outline \newline \footnotesize{warnings: Controller-side cutter compensation} \\
-\texttt{haas\_\allowbreak subprogram} (44 lines) & 4x pocket 20x20x2 \newline \footnotesize{warnings: none} \\
-\texttt{helical\_\allowbreak no\_\allowbreak comments} (32 lines) & 4x hole $\varnothing$6, 1x pocket 38x28x3 \newline \footnotesize{warnings: T8} \\
-\texttt{lathe\_\allowbreak program} (14 lines) & 1x slot 36x6x25 \newline \footnotesize{warnings: Looks like a lathe; Non-XY plane} \\
-\texttt{linuxcnc\_\allowbreak style} (35 lines) & 2x step \newline \footnotesize{warnings: Unsupported code G64 ignored} \\
-\texttt{macro\_\allowbreak bolt\_\allowbreak circle} (26 lines) & 1x step \newline \footnotesize{warnings: Macro variables / control flow} \\}
+\newcommand{\HandRows}{\texttt{fanuc\_\allowbreak cutter\_\allowbreak comp} (32 lines) & 4x hole $\varnothing$9, 1x outline \newline \textit{warnings: Controller-side cutter compensation} \\
+\texttt{haas\_\allowbreak subprogram} (44 lines) & 4x pocket 20x20x2 \newline \textit{warnings: none} \\
+\texttt{helical\_\allowbreak no\_\allowbreak comments} (32 lines) & 4x hole $\varnothing$6, 1x pocket 38x28x3 \newline \textit{warnings: T8} \\
+\texttt{lathe\_\allowbreak program} (14 lines) & 1x slot 36x6x25 \newline \textit{warnings: Looks like a lathe; Non-XY plane} \\
+\texttt{linuxcnc\_\allowbreak style} (35 lines) & 2x step \newline \textit{warnings: none} \\
+\texttt{macro\_\allowbreak bolt\_\allowbreak circle} (24 lines) & 6x hole $\varnothing$7 on PCD 80, 1x circular pocket \newline \textit{warnings: none} \\}
+\newcommand{\RealN}{15}
+\newcommand{\RealAnalysed}{13}
+\newcommand{\RealMacro}{5}
+\newcommand{\RealRows}{\texttt{3D\_Chips} & 3D carving of a 100x100x50 mm block with a 10 mm ball-nose cutter & 2x pocket island 122x115x30, 2x hole $\varnothing$6, 1x po\dots \newline \textit{macro executed} \\
+\texttt{cds} & 'Circle Diamond Square' test part on 4x4x2 in stock (stock top at Z=2 in) & 4x step, 1x pocket 89x56x24 \\
+\texttt{comp-g1} & cutter-compensation demo, tool defined only in the controller's tool table & no features below faced surface \newline \textit{cutter comp.\ flagged} \\
+\texttt{g881} & remap subroutine for a custom G81 (not a part program) & rejected: no cutting moves \\
+\texttt{hole-circle} & 6 bolt holes on a 3 in (76.2 mm) circle, polar coordinates + L repeat & 6x hole $\varnothing$6 on PCD 76 \\
+\texttt{lathe\_pawn} & lathe program (chess pawn): should be flagged, not milled & 1x pocket 27x19x38, 1x pocket 19x19x38 \newline \textit{lathe flagged} \\
+\texttt{mmount} & stepper-motor mount, multi-station fixture (G55-G57), macros & 7x hole $\varnothing$6, 5x outline, 2x pocket 17x17x14, 1x\dots \newline \textit{macro executed; cutter comp.\ flagged; multi-station flagged} \\
+\texttt{polar} & 3 + 1 + 5 + 17 = 26 holes using polar coordinates & 26x hole $\varnothing$6 \newline \textit{macro executed} \\
+\texttt{spiral} & spiral engraving, o-word repeat loop of 800 polar steps & 1x circular pocket \newline \textit{macro executed} \\}

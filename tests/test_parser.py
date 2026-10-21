@@ -91,5 +91,5 @@ def test_warnings_for_unsupported_features():
     res = parse("G41 D1 G1 X10 F100\n#100=5\nM98 P1000\nG40\n")
     text = " ".join(res.warnings)
     assert "cutter compensation" in text.lower()
-    assert "macro" in text.lower()
     assert "subprogram" in text.lower()
+    assert any("Macro program executed" in n for n in res.notes)   # parameters are now executed

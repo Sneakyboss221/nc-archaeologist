@@ -53,9 +53,13 @@ A tokenizer plus modal state machine following ISO 6983. The state tracked is mo
 | G20/G21, G90/G91 | converted to mm, absolute |
 | G81/G82/G83, G98/G99, G80 | expanded to rapid → R-plane → feed → retract; peck count kept for cycle time |
 | T…M6, tool comments | `(T3 D6.0 FLAT)`, `T2 M06 (D10 FLAT EM)`, `(T4 0.25 IN BALL)` |
-| Fanuc `M98 P… L…` / `O… M99`, LinuxCNC `o-sub` / `o-call` | subprograms defined in the same file are inlined |
+| Fanuc `M98 P… L…` / `O… M99` | subprograms defined in the same file are inlined |
+| Parameters `#1`, `#<name>`, expressions `[…]` | executed by the macro layer (`macro.py`) before interpretation; `+ - * / ** MOD`, `EQ NE GT GE LT LE`, `AND OR XOR`, `SIN COS TAN ASIN ACOS ATAN[y]/[x] SQRT ABS ROUND FIX FUP LN EXP EXISTS` |
+| LinuxCNC `o`-words | `sub/endsub/call [args]/return`, `if/elseif/else/endif`, `while/endwhile`, `do…while`, `repeat/endrepeat` |
+| Fanuc Macro B | `WHILE[…]DOn … ENDn`, `IF[…]GOTOn`, `IF[…]THEN #x=…`, `GOTOn` |
+| Polar coordinates `@r ^a`, canned-cycle repeat `L` | about the origin; in G91, `@`/`^` and the X/Y step are increments per repeat |
 
-Constructs that cannot be executed faithfully produce explicit warnings rather than guessed geometry: G41/G42 cutter compensation, Macro B variables and control flow, external subprogram calls, non-XY planes, and lathe programs (detected from T0101-style tool words, G96/G97, G18 and G70–G72).
+Constructs that cannot be executed faithfully produce explicit warnings rather than guessed geometry: G41/G42 cutter compensation, calls to subprograms stored in other files, non-XY planes, several work offsets (G54–G59) in one program, and lathe programs (detected from T0101-style tool words, G96/G97, G18, G7/G8 and G70–G72). A macro program that cannot be executed is reported with the reason (e.g. `subroutine o<touchoff> is defined in another file`).
 
 A comment counts as a tool definition only if it names a tool number or sits on the tool-change line, so section notes like `(POCKET: 10 MM END MILL)` are ignored.
 
@@ -135,7 +139,25 @@ No public collection of CNC programs with part-family labels exists, so the benc
 - **Random fixturing:** rotation (50% at 0°, 25% at a multiple of 90°, 25% arbitrary) and a work zero at the stock centre or corner, with ±3 mm jitter.
 - File names (`O####.nc`) carry no family information. Ground truth (`data*/gt/*.json`) holds the family, the design spec, the tool table and an analytic design-depth function, and is used only for evaluation.
 
-The repository also contains six **hand-written programs** (`samples/handwritten/`) that exercise vendor constructs the generator does not produce: cutter compensation, a Haas subprogram, a Fanuc Macro B bolt circle, a helical entry without comments, LinuxCNC o-word subroutines and a lathe program. The paper reports their results honestly, including two misclassifications.
+The repository also contains six **hand-written programs** (`samples/handwritten/`) that exercise vendor constructs the generator does not produce: cutter compensation, a Haas subprogram, a Fanuc Macro B bolt circle, a helical entry without comments, LinuxCNC o-word subroutines and a lathe program. The paper reports their results, including one misclassification.
+
+## Real programs (`data_real/linuxcnc/`, `experiments/real_world.py`)
+
+Fifteen unmodified example programs from the LinuxCNC project's `nc_files` folder (GPL-2.0; source commit in `data_real/linuxcnc/.source_commit`): all 3-axis milling examples plus one lathe program. They have no ground truth, so each result is checked against what the file's own comments say it makes.
+
+| Program | Stated in the file | Recovered |
+|---|---|---|
+| `3D_Chips` | 3D carving, 100×100×50 mm block, 10 mm ball nose; 4,700 lines written with named parameters | carving recovered (macro layer executes all 4,684 moves) |
+| `mmount` | stepper-motor mount, macros, three fixture stations (G55–G57) | outline, bolt holes, slots; macro loops executed (70 iterations); multi-station and cutter compensation flagged |
+| `polar` | 3 + 1 + 5 + 17 = 26 holes in polar coordinates | **26 holes** |
+| `hole-circle` | 6 holes on a 3 in (76.2 mm) circle, `^60 L6` | **6 holes on PCD 76 mm** |
+| `spiral` | `o100 repeat [800]` of polar steps | 800 iterations executed |
+| `cds` | Circle-Diamond-Square test part, stock top at Z = 2 in | nested square / circle / diamond recovered |
+| `comp-g1`, `gmoccapy_…` | cutter-compensation demos | flagged |
+| `lathe_pawn` | lathe program | flagged as turning |
+| `g881`, `skeleton` | remap subroutine, empty template | rejected: no cutting moves |
+
+13 of 15 are analysed; the two rejections are not part programs. Running these files exposed the parametric programming, polar coordinates and `L` repeats that the synthetic benchmark never contained; the interpreter was extended to execute them. Cutter and drill sizes are rarely stated in these files, so dimensions rely on the flagged default.
 
 ---
 
@@ -143,7 +165,8 @@ The repository also contains six **hand-written programs** (`samples/handwritten
 
 ```
 ncarch/
-  gcode/       parser.py      modal interpreter, subprogram expansion, warnings
+  gcode/       parser.py      modal interpreter, polar coordinates, subprogram expansion, warnings
+               macro.py       parameters, expressions, o-word / Macro B control flow
                arcs.py        G2/G3 linearisation (IJK and R forms)
   sim/         tools.py       cutter profiles, raster-run diameter inference
                stock.py       dexel height map, closed-form flat-cutter sweep
@@ -160,15 +183,17 @@ ncarch/
   pipeline.py  batch analysis of a program folder → out_*/
   api.py       FastAPI back end for the dashboard
 web/           dashboard (vanilla JS modules, Three.js, Plotly)
-experiments/   run_all.py (all paper metrics + figures), make_numbers.py (→ paper/numbers.tex)
+experiments/   run_all.py (all paper metrics + figures), real_world.py (LinuxCNC programs),
+               make_numbers.py (→ paper/numbers.tex)
 paper/         main.tex (IEEEtran), main.pdf, figs/, numbers.tex (generated)
 data/          development benchmark (seed 7): programs/ + gt/
 data_test/     held-out benchmark (seed 11): programs/ + gt/
+data_real/     unmodified LinuxCNC example programs (GPL-2.0)
 out_test/      analysed test archive loaded by the dashboard
 results/       metrics.json, per_program.json
 samples/       handwritten/, same_part/ (one part × 4 dialects), playground_starter.nc
 docs/          learning guide, question bank, demo script, viva cheat sheet
-tests/         pytest suite (interpreter, simulator, inference)
+tests/         pytest suite: interpreter, macro layer, polar coordinates, simulator, inference (22 tests)
 ```
 
 ---
@@ -214,7 +239,8 @@ python -m ncarch.datagen.generate data      --per-family 75 --seed 7
 python -m ncarch.datagen.generate data_test --per-family 75 --seed 11
 python -m ncarch.pipeline data_test/programs out_test
 python -m experiments.run_all --data data_test --out out_test      # ~10 min, writes results/ and paper/figs/
-python -m experiments.make_numbers                                 # results/metrics.json → paper/numbers.tex
+python -m experiments.real_world                                   # LinuxCNC programs → results/real_world.json
+python -m experiments.make_numbers                                 # results/*.json → paper/numbers.tex
 cd paper && pdflatex main.tex && pdflatex main.tex
 ```
 
@@ -254,10 +280,10 @@ cd paper && pdflatex main.tex && pdflatex main.tex
 
 ## Limitations
 
-- **Synthetic benchmark.** The families, CAM strategies and dialects were designed by us. Real archives contain strategies the generator does not produce (adaptive clearing, trochoidal slots, 3D surfacing). Validation on a real shop archive is the main open item.
+- **Synthetic benchmark.** The families, CAM strategies and dialects were designed by us. Real archives contain strategies the generator does not produce (adaptive clearing, trochoidal slots, 3D surfacing). The LinuxCNC programs show that the interpreter and reconstruction carry over to real files, but they carry no family labels; quantitative validation on a labelled shop archive is the main open item.
 - **2.5D model.** One height per XY cell: 3-axis prismatic parts only, no undercuts or 4/5-axis work.
 - **Unknown cutters and stock.** Drill diameters cannot be inferred from geometry. Without a facing pass the stock edge is unknown, and pockets at the edge of the machined area can be labelled as steps.
-- **Not executed:** Macro B, cutter compensation G41/G42, and subprograms stored in other files. All are flagged.
+- **Not executed:** cutter compensation G41/G42, subprograms stored in other files, and controller-specific system parameters. All are flagged. Programs using several work offsets are drawn in one coordinate frame.
 
 ## References
 

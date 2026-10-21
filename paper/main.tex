@@ -37,9 +37,11 @@ benchmark of \NProg{} programs from \NFam{} part families written in four
 dialects with random fixturing, the recovered parts reach a mean removed-volume
 IoU of \RecAllIoU{} against design intent. Family discovery reaches an adjusted
 Rand index of \FullARI{} and retrieval reaches precision@5 of \FullPATFIVE{}.
-Both are well above text-based baselines (ARI \TextRawARI{}). To the best of
-our knowledge, this is the first approach that forms GT part families directly
-from subtractive CNC programs.
+Both are well above text-based baselines (ARI \TextRawARI{}). On \RealN{}
+open-source LinuxCNC programs not produced by our generator, \RealAnalysed{} are
+analysed, including parametric and macro programs, and recognisable parts are
+recovered. To the best of our knowledge, this is the first approach that forms
+GT part families directly from subtractive CNC programs.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -74,9 +76,10 @@ We instead treat each program as an executable description of geometry. We
 replay it, recover what it makes, and compare programs by that result. This
 paper contributes:
 \begin{enumerate}
-\item a dialect-tolerant G-code interpreter with explicit warnings for
-constructs it cannot execute faithfully (cutter compensation, macros,
-external subprograms);
+\item a dialect-tolerant G-code interpreter that also executes parametric
+programs (variables, expressions, loops, subroutines, polar coordinates), with
+explicit warnings for constructs it cannot execute faithfully (cutter
+compensation, external subprograms, lathe code);
 \item recovery of the machined part by dexel simulation, including a
 \emph{raster-run} heuristic that infers cutter diameters missing from programs
 without tool comments, and a stock-footprint estimate from the facing toolpath;
@@ -150,12 +153,19 @@ A tokenizer and modal state machine follow ISO~6983~\cite{iso6983}. They handle
 motion modes G0--G3 (IJK and R arcs, helical moves), units G20/G21, distance
 modes G90/G91, canned drilling cycles G81--G83 with G98/G99 retract, tool
 changes and work offsets. Arcs are linearised to a 0.05\,mm chord tolerance.
-Subprograms defined in the same file (Fanuc \texttt{M98}/\texttt{O}\,\dots\,\texttt{M99}
-and LinuxCNC \texttt{o-sub}) are inlined. Constructs the interpreter cannot
+Fanuc subprograms (\texttt{M98}/\texttt{O}\,\dots\,\texttt{M99}) defined in
+the same file are inlined. Parametric programs are executed by a macro layer
+before interpretation: numbered and named parameters, bracket expressions with
+arithmetic, comparison and trigonometric functions, LinuxCNC \texttt{o}-word
+subroutines with arguments, \texttt{if}/\texttt{while}/\texttt{repeat}, and
+Fanuc Macro~B \texttt{WHILE\dots DO}/\texttt{END} and \texttt{IF\dots GOTO}.
+Polar coordinates (\texttt{@} radius, \texttt{\^{}} angle) and repeat counts
+\texttt{L} on canned cycles are supported. Constructs the interpreter cannot
 execute faithfully are \emph{flagged rather than guessed}: controller-side
-cutter compensation G41/G42, macro variables and control flow, calls to
-external subprograms, non-XY planes, and lathe programs. Each program carries
-these warnings into the user interface.
+cutter compensation G41/G42, calls to subprograms in other files, non-XY
+planes, several work offsets in one program (fixture stations drawn in one
+frame) and lathe programs. Each program carries these warnings into the user
+interface.
 
 \subsection{Cutter inference}
 Diameters are read from tool comments when present. Many legacy programs have
@@ -221,9 +231,9 @@ unusual programs. Similarity search uses cosine $k$-NN, and the archive map
 uses t-SNE~\cite{vandermaaten2008}.
 
 \subsection{Implementation and interactive dashboard}
-The system is written in Python (about 3,200 lines, using NumPy, SciPy,
-scikit-image and scikit-learn) with 15 unit tests for the interpreter and the
-simulator. A FastAPI back end serves a browser dashboard (Fig.~\ref{fig:dash})
+The system is written in Python (about 3,800 lines, using NumPy, SciPy,
+scikit-image and scikit-learn) with 22 unit tests for the interpreter, the
+macro layer and the simulator. A FastAPI back end serves a browser dashboard (Fig.~\ref{fig:dash})
 built with Three.js and Plotly. Users can browse the archive map and the
 discovered families, inspect a recovered part in 3D, and replay its machining:
 the replay lowers the height map move by move and shows the G-code line being
@@ -417,14 +427,51 @@ measurement; 0.5\,mm would suffice for family discovery alone.
 Table~\ref{tab:hand} lists hand-written programs that were not produced by our
 generator. They exercise vendor constructs: cutter compensation, a Haas
 subprogram, a Fanuc Macro~B bolt circle, a helical entry without tool
-comments, LinuxCNC o-word subroutines, and a lathe program. Subprograms
-defined in the same file are expanded and recovered correctly, and cutter
-compensation, macros and the lathe program are flagged. Two results are
-wrong in instructive ways. Without a facing pass the stock edge is unknown, so
-the two LinuxCNC window pockets, which lie at the edge of the machined area,
-were labelled as steps. In the macro program the bolt-circle holes are lost
-(macro lines are skipped, with a warning) and the remaining circular pocket is
-also mislabelled.
+comments, LinuxCNC o-word subroutines, and a lathe program. The subprogram
+and the Macro~B loop are executed and recovered correctly (six holes on the
+programmed 80\,mm pitch circle), and cutter compensation and the lathe program
+are flagged. One result is wrong in an instructive way: without a facing pass
+the stock edge is unknown, so the two LinuxCNC window pockets, which lie at the
+edge of the machined area, are labelled as steps.
+
+\subsection{Open-source real programs}\label{sec:real}
+To check the interpreter beyond our own generator, we ran \RealN{} programs from
+the \texttt{nc\_files} folder of the LinuxCNC project (GPL-2.0), selected as all
+3-axis milling examples plus one lathe program, unmodified. They include a
+3D carving written entirely with named parameters (4{,}700 lines), a
+stepper-motor mount from a workshop machine using macros and three fixture
+stations, bolt circles in polar coordinates, cutter-compensation demonstrations
+and an interpreter torture test. \RealAnalysed{} programs are analysed; the
+other two are not part programs (a remap subroutine and an empty template) and
+are correctly rejected for having no cutting moves. The macro layer is needed
+in \RealMacro{} of them. These files have no ground truth, so
+Table~\ref{tab:real} compares the result with what each file's own comments
+say it makes. Hole counts and pitch circles match the comments exactly (26
+holes in \texttt{polar}; six holes on PCD 76\,mm for a programmed 3-inch
+circle), and the carving and motor mount are recognisable
+(Fig.~\ref{fig:real}). Drill and cutter sizes are rarely stated in these
+files, so the default diameter is used and flagged, which limits dimensional
+accuracy.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\columnwidth]{figs/real_world.pdf}
+\caption{Parts recovered from unmodified LinuxCNC example programs (depth maps, darker = higher).}
+\label{fig:real}
+\end{figure}
+
+\begin{table}[t]
+\caption{Open-source LinuxCNC programs (selected)}
+\label{tab:real}
+\centering\scriptsize
+\begin{tabular}{>{\raggedright}p{1.35cm}>{\raggedright}p{2.75cm}>{\raggedright\arraybackslash}p{3.6cm}}
+\toprule
+program & stated in the file & recovered \\
+\midrule
+\RealRows
+\bottomrule
+\end{tabular}
+\end{table}
 
 \begin{table}[t]
 \caption{Hand-written test programs (qualitative)}
@@ -445,15 +492,18 @@ program & recovered description and warnings \\
 \item \textbf{Synthetic benchmark.} Families, CAM strategies and dialects were
 designed by us. The dialect variety and fixturing randomisation make text
 matching fail, but real archives contain more diverse strategies (adaptive
-clearing, trochoidal slots). Validation on a real shop archive is the most
-important next step.
+clearing, trochoidal slots). The open-source programs of
+Section~\ref{sec:real} show that the interpreter and reconstruction carry over
+to real files, but they have no family labels. Quantitative validation on a
+labelled shop archive is the most important next step.
 \item \textbf{2.5D model.} Height maps cannot represent undercuts, and the
 system targets 3-axis prismatic parts.
 \item \textbf{Unknown stock and cutters.} Stock size is inferred from facing
 when present. Drill diameters cannot be inferred from geometry. Cutter
 compensation is flagged rather than resolved.
-\item \textbf{Macros.} Programs driven by macro variables are flagged.
-Executing Macro~B would extend coverage.
+\item \textbf{Not executed.} Subprograms stored in other files, system
+parameters of a specific controller and cutter compensation are flagged rather
+than executed. A program using several work offsets is drawn in one frame.
 \end{itemize}
 
 \section{Future Work}

@@ -11,14 +11,15 @@ import re
 from dataclasses import dataclass, field
 
 from .arcs import arc_center_from_r, linearize_arc
+from .macro import MacroError, execute, needs_macro
 
-WORD_RE = re.compile(r"([A-Z])\s*([-+]?(?:\d+\.?\d*|\.\d+))")
+WORD_RE = re.compile(r"([A-Z@^])\s*([-+]?(?:\d+\.?\d*|\.\d+))")   # @ ^ = polar radius / angle
 COMMENT_RE = re.compile(r"\(([^)]*)\)")
 MACRO_RE = re.compile(r"#|\b(IF|WHILE|GOTO|DO|END\d)\b")
 
 INCH = 25.4
 SUPPORTED_G = {0, 1, 2, 3, 4, 17, 20, 21, 28, 40, 43, 49, 53, 54, 55, 56, 57,
-               58, 59, 80, 81, 82, 83, 90, 91, 94, 98, 99}
+               58, 59, 61, 64, 80, 81, 82, 83, 90, 91, 94, 98, 99}
 SUPPORTED_M = {0, 1, 3, 4, 5, 6, 7, 8, 9, 30, 2}
 TOOL_TYPES = [("BALL", "ball"), ("DRILL", "drill"), ("SPOT", "drill"),
               ("CHAMFER", "chamfer"), ("FACE", "face"), ("FLAT", "flat"),
@@ -91,30 +92,22 @@ def _parse_tool_comment(text, inch):
 
 FANUC_SUB_RE = re.compile(r"^\s*O(\d+)\b", re.I)
 FANUC_CALL_RE = re.compile(r"\bM98\s*P(\d+)(?:\s*L(\d+))?", re.I)
-LCNC_RE = re.compile(r"^\s*o(\d+)\s+(sub|endsub|call)\b", re.I)
 LATHE_CUES = [re.compile(r"\bT\d{4}\b"), re.compile(r"\bG9[67]\b"), re.compile(r"\bG18\b"),
-              re.compile(r"\bG7[0-2]\b")]
+              re.compile(r"\bG7[0-2]\b"), re.compile(r"\bG[78]\b")]   # G7/G8 = lathe diameter/radius mode
 
 
 def expand_subprograms(text, notes):
     """Inline subprograms defined in the same file.
 
     Supports Fanuc/Haas `M98 P<n> [L<count>]` with `O<n> ... M99` bodies placed
-    after the main program, and LinuxCNC `o<n> sub ... o<n> endsub` with `o<n> call`.
+    after the main program. LinuxCNC o-word subroutines (which take arguments)
+    are run by the macro executor in macro.py.
     """
     lines = text.splitlines()
     subs, main = {}, []
     cur, cur_kind = None, None
     seen_end = False
     for ln in lines:
-        m = LCNC_RE.match(ln)
-        if m and m.group(2).lower() == "sub":
-            cur, cur_kind = "o" + m.group(1), "lcnc"
-            subs[cur] = []
-            continue
-        if m and m.group(2).lower() == "endsub":
-            cur = None
-            continue
         if cur is None and seen_end and FANUC_SUB_RE.match(ln):
             cur, cur_kind = "P" + str(int(FANUC_SUB_RE.match(ln).group(1))), "fanuc"
             subs[cur] = []
@@ -132,12 +125,9 @@ def expand_subprograms(text, notes):
     def inline(block, depth):
         out = []
         for ln in block:
-            m = LCNC_RE.match(ln)
             f = FANUC_CALL_RE.search(ln)
             key, reps = None, 1
-            if m and m.group(2).lower() == "call":
-                key = "o" + m.group(1)
-            elif f:
+            if f:
                 p = f.group(1)
                 key = "P" + str(int(p[-4:]) if len(p) > 4 else int(p))
                 reps = int(f.group(2)) if f.group(2) else (int(p[:-4]) if len(p) > 4 else 1)
@@ -158,6 +148,11 @@ def parse(text: str, chord_tol: float = 0.05) -> ParseResult:
     res = ParseResult()
     notes = []
     text = expand_subprograms(text, notes)
+    if needs_macro(text):
+        try:
+            text = "\n".join(execute(text, notes))
+        except (MacroError, KeyError, ValueError, ZeroDivisionError, OverflowError) as e:
+            res.warn(f"Macro program could not be executed ({e}); macro lines skipped, geometry may be incomplete")
     res.notes = sorted(set(notes))
     if sum(bool(c.search(text.upper())) for c in LATHE_CUES) >= 2:
         res.warn("Looks like a lathe (turning) program: milling reconstruction is not meaningful")
@@ -172,6 +167,20 @@ def parse(text: str, chord_tol: float = 0.05) -> ParseResult:
     retract_initial = True       # G98 (initial plane) vs G99 (R plane)
     cyc = {}                     # modal canned-cycle words
     comp_active = False
+    offsets = set()              # work offsets G54..G59 used
+
+    def xy_target(vals):
+        """Target XY in mm: cartesian, or polar (@ radius, ^ angle about the origin)."""
+        if "@" in vals or "^" in vals:
+            r0, a0 = math.hypot(pos[0], pos[1]), math.degrees(math.atan2(pos[1], pos[0]))
+            if incremental:
+                r, a = r0 + u(vals.get("@", 0.0)), a0 + vals.get("^", 0.0)
+            else:
+                r, a = (u(vals["@"]) if "@" in vals else r0), vals.get("^", a0)
+            return r * math.cos(math.radians(a)), r * math.sin(math.radians(a))
+        if incremental:
+            return pos[0] + u(vals.get("X", 0.0)), pos[1] + u(vals.get("Y", 0.0))
+        return (u(vals["X"]) if "X" in vals else pos[0]), (u(vals["Y"]) if "Y" in vals else pos[1])
 
     def u(v):
         return v * INCH if inch else v
@@ -269,6 +278,11 @@ def parse(text: str, chord_tol: float = 0.05) -> ParseResult:
                 comp_active = False
             elif gi == 28:
                 emit([pos[0], pos[1], max(pos[2], 50.0)], "rapid")
+            elif 54 <= gi <= 59:
+                offsets.add(gi)
+                if len(offsets) == 2:
+                    res.warn("Several work offsets (G54-G59) used: separate set-ups or fixture stations "
+                             "are drawn in one coordinate frame and may overlap")
         if re.match(r"^\s*O\d+\s+(CALL|SUB|ENDSUB)", code):
             res.warn("O-word subroutine not defined in this file; geometry may be incomplete")
             continue
@@ -298,7 +312,7 @@ def parse(text: str, chord_tol: float = 0.05) -> ParseResult:
         if new_motion is not None:
             motion = new_motion
 
-        has_xyz = any(k in vals for k in "XYZ")
+        has_xyz = any(k in vals for k in "XYZ@^")
         if 53 in [int(round(g)) for g in g_codes] or 28 in [int(round(g)) for g in g_codes]:
             continue  # machine-coordinate / home moves: not part geometry
 
@@ -307,36 +321,31 @@ def parse(text: str, chord_tol: float = 0.05) -> ParseResult:
             for k in ("Z", "R", "Q"):
                 if k in vals:
                     cyc[k] = u(vals[k])
-            if not (("X" in vals) or ("Y" in vals) or new_motion is not None):
+            if not (any(k in vals for k in "XY@^") or new_motion is not None):
                 continue
             init_z = pos[2]
             if incremental:
-                x = pos[0] + u(vals.get("X", 0.0))
-                y = pos[1] + u(vals.get("Y", 0.0))
                 r_plane = init_z + cyc.get("R", 0.0)
                 z_bot = r_plane + cyc.get("Z", 0.0)
             else:
-                x = u(vals["X"]) if "X" in vals else pos[0]
-                y = u(vals["Y"]) if "Y" in vals else pos[1]
                 r_plane = cyc.get("R", init_z)
                 z_bot = cyc.get("Z", init_z)
-            emit([x, y, init_z], "rapid")
-            emit([x, y, r_plane], "rapid")
-            if motion == 83 and cyc.get("Q"):
-                res.pecks += max(0, int(math.ceil(abs(r_plane - z_bot) / abs(cyc["Q"]))) - 1)
-            emit([x, y, z_bot], "feed")
-            emit([x, y, init_z if retract_initial else r_plane], "rapid")
+            # L = repeat count: in incremental mode each repeat steps by the X/Y (or polar) increment
+            for _ in range(max(1, int(vals.get("L", 1))) if incremental else 1):
+                x, y = xy_target(vals)
+                emit([x, y, init_z], "rapid")
+                emit([x, y, r_plane], "rapid")
+                if motion == 83 and cyc.get("Q"):
+                    res.pecks += max(0, int(math.ceil(abs(r_plane - z_bot) / abs(cyc["Q"]))) - 1)
+                emit([x, y, z_bot], "feed")
+                emit([x, y, init_z if retract_initial else r_plane], "rapid")
             continue
 
         if not has_xyz and not ("I" in vals or "J" in vals or "R" in vals):
             continue
-        if incremental:
-            target = [pos[0] + u(vals.get("X", 0.0)), pos[1] + u(vals.get("Y", 0.0)),
-                      pos[2] + u(vals.get("Z", 0.0))]
-        else:
-            target = [u(vals["X"]) if "X" in vals else pos[0],
-                      u(vals["Y"]) if "Y" in vals else pos[1],
-                      u(vals["Z"]) if "Z" in vals else pos[2]]
+        tx, ty = xy_target(vals)
+        tz = pos[2] + u(vals.get("Z", 0.0)) if incremental else (u(vals["Z"]) if "Z" in vals else pos[2])
+        target = [tx, ty, tz]
 
         if motion == 0:
             emit(target, "rapid")

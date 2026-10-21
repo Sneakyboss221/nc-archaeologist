@@ -95,8 +95,41 @@ for r in M.get("handwritten", []):
         continue
     w = "; ".join(x.split(":")[0].split("(")[0].strip() for x in r["warnings"][:2]) or "none"
     hw.append(f"\\texttt{{{f}}} ({r['lines']} lines) & {r['description'].replace('Ø', '$\\varnothing$')} "
-              f"\\newline \\footnotesize{{warnings: {w}}} \\\\")
+              f"\\newline \\textit{{warnings: {w}}} \\\\")
 out.append("\\newcommand{\\HandRows}{" + "\n".join(hw) + "}")
+
+# open-source real programs (experiments/real_world.py)
+RW_PATH = Path("results/real_world.json")
+if RW_PATH.exists():
+    RW = json.loads(RW_PATH.read_text())
+    cmd("RealN", RW["n"], "{:d}")
+    cmd("RealAnalysed", RW["analysed"], "{:d}")
+    cmd("RealMacro", RW["with_macros_executed"], "{:d}")
+    pick = ["3D_Chips.ngc", "mmount.ngc", "cds.ngc", "polar.ngc", "hole-circle.ngc", "spiral.ngc",
+            "comp-g1.ngc", "lathe_pawn.ngc", "g881.ngc"]
+    rr = []
+    for r in RW["rows"]:
+        if r["file"] not in pick:
+            continue
+        f = r["file"].removesuffix(".ngc").replace("_", "\\_")
+        if r["status"] == "rejected":
+            got = "rejected: no cutting moves"
+        else:
+            d = r["description"]
+            got = (d if len(d) < 48 else d[:46] + "\\dots").replace("Ø", "$\\varnothing$")
+            flags = []
+            if any("Macro program executed" in n for n in r["notes"]):
+                flags.append("macro executed")
+            if any("lathe" in w for w in r["warnings"]):
+                flags.append("lathe flagged")
+            if any("compensation" in w for w in r["warnings"]):
+                flags.append("cutter comp.\\ flagged")
+            if any("work offsets" in w for w in r["warnings"]):
+                flags.append("multi-station flagged")
+            if flags:
+                got += " \\newline \\textit{" + "; ".join(flags) + "}"
+        rr.append(f"\\texttt{{{f}}} & {r['expected']} & {got} \\\\")
+    out.append("\\newcommand{\\RealRows}{" + "\n".join(rr) + "}")
 
 Path("paper/numbers.tex").write_text("\n".join(out) + "\n", encoding="utf-8")
 print(f"wrote paper/numbers.tex ({len(out)} macros)")

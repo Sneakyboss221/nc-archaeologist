@@ -85,9 +85,10 @@ The parser reads line by line and keeps a "memory" (the **state**): current unit
 - **Arcs** (G2/G3) are cut into short straight pieces, no more than 0.05 mm off the true curve.
 - **Drilling cycles** (G81/G83) are expanded: one line `G83 X10 Y5 Z-12 R2` becomes rapid to the hole → down to R → feed to Z−12 → back up.
 - **Subprograms** in the same file are pasted in where they're called.
-- **Things we can't run** (cutter compensation G41/G42, macros, lathe code) give a **warning** instead of a guess.
+- **Parametric (macro) programs** are run first: variables like `#<scale>` are filled in, `[expressions]` are calculated, and loops, if/else and subroutines are executed, producing plain G-code. **Polar coordinates** (`@` radius, `^` angle) are also understood.
+- **Things we can't run** (cutter compensation G41/G42, subprograms in other files, lathe code) give a **warning** instead of a guess.
 
-▶ **Try it:** Run a sample → "Hand-written Fanuc macro program". See the yellow warning.
+▶ **Try it:** Run a sample → "Hand-written Fanuc Macro B bolt circle". A loop computes 6 hole positions with COS and SIN, and the system finds 6 holes on an 80 mm circle. Then try "Hand-written plate with cutter compensation" to see a warning.
 
 ### 3.2 Finding the cutter size
 To rebuild the part we need each cutter's diameter.
@@ -183,10 +184,10 @@ The **map** squeezes the 75 numbers into 2D for display (t-SNE): close dots are 
 Text clusters match the *dialect* labels (ARI 0.61) but not the families (0.07).
 
 ### 4.4 Honest limits (say these confidently)
-- The data is synthetic; the next step is a real shop archive.
+- The benchmark data is synthetic. We also ran 15 real open-source LinuxCNC programs (13 analysed, and they match their own comments), but those have no family labels. A labelled shop archive is the next step.
 - Without tool comments, accuracy drops.
 - 3-axis parts only (2.5D).
-- Macros and cutter compensation are flagged, not executed.
+- Cutter compensation and subprograms stored in other files are flagged, not executed.
 
 ---
 

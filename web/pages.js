@@ -33,7 +33,7 @@ function renderHow(ctx) {
       <div class="step"><div class="stepno">1</div>
         <div><h3>Read the G-code ${infoIcon("gcode")}</h3>
           <p>A G-code program is a list of commands. The parser reads it line by line and keeps track of the machine's state: is it in mm or inch, absolute or incremental, which tool is loaded, which motion mode is active. Arcs become short straight segments, and one-line drilling cycles are expanded into real moves.</p>
-          <p>Anything it can't run faithfully (cutter compensation, macros, lathe code) raises a <b>warning</b> instead of a guess.</p></div>
+          <p>Parametric programs are executed too: variables like <code>#&lt;scale&gt;</code>, expressions in [brackets], loops, if/else, subroutines with arguments, and polar coordinates (@ ^). Anything it can't run faithfully (cutter compensation, subprograms in other files, lathe code) raises a <b>warning</b> instead of a guess.</p></div>
         <div class="live"><h4>Live: ${esc(st["Parse G-code"] || `${rec.n_lines} lines`)}</h4>
           <pre>${lines.map((l) => `<span data-gline>${highlight(l.trim())}</span>  <i class="c">← ${esc(explainLine(l).filter((s) => !s.startsWith("Line number"))[0] || "")}</i>`).join("\n")}</pre></div></div>
 
@@ -215,7 +215,8 @@ async function renderResults(ctx) {
     <div class="callout honest"><h3>Honest limitations (also in the paper)</h3><ul>
       <li>The benchmark is <b>synthetic</b>: we generated it because no labelled public dataset of CNC programs exists. Real-archive validation is the next step.</li>
       <li>When cutter sizes can't be stated or inferred, recovery drops (IoU ${R.tools_inferred.iou.toFixed(2)} vs ${R.tools_from_comments.iou.toFixed(3)}).</li>
-      <li>2.5D height map: 3-axis prismatic parts only (no undercuts). Macros and cutter compensation are flagged, not executed.</li></ul></div>
+      <li>2.5D height map: 3-axis parts only (no undercuts). Cutter compensation and subprograms stored in other files are flagged, not executed.</li>
+      <li>Real-file check: 13 of 15 open-source LinuxCNC programs analysed (the other 2 are not part programs); there is no ground truth for them, so this is qualitative.</li></ul></div>
   </div>`;
   const order = ["text_tfidf_raw", "text_tfidf_codes", "process_only", "geometry_only", "full"];
   const labels = ["Text (raw)", "Text (codes)", "Process only", "Geometry only", "Full (ours)"];

@@ -1,0 +1,257 @@
+{
+  "source": "LinuxCNC nc_files (GPL-2.0)",
+  "commit": "062dc7c097693bb68e76192516cd92878dd5ecdf",
+  "n": 15,
+  "analysed": 13,
+  "with_macros_executed": 5,
+  "flagged": 7,
+  "rows": [
+    {
+      "file": "3D_Chips.ngc",
+      "expected": "3D carving of a 100x100x50 mm block with a 10 mm ball-nose cutter",
+      "lines": 4711,
+      "status": "analysed",
+      "moves": 4684,
+      "description": "2x pocket island 122x115x30, 2x hole \u00d86, 1x pocket 128x121x30, 1x pocket island 120x114x30",
+      "operations": [
+        "bore"
+      ],
+      "notes": [
+        "Macro program executed (6 parameters, 6 named; 0 loop iterations)"
+      ],
+      "warnings": [],
+      "default_tools": 1,
+      "runtime_s": 1.007
+    },
+    {
+      "file": "arcspiral.ngc",
+      "expected": "engraved arc spiral (inch)",
+      "lines": 1008,
+      "status": "analysed",
+      "moves": 2002,
+      "description": "1x circular pocket",
+      "operations": [
+        "bore"
+      ],
+      "notes": [],
+      "warnings": [],
+      "default_tools": 1,
+      "runtime_s": 0.315
+    },
+    {
+      "file": "cds.ngc",
+      "expected": "'Circle Diamond Square' test part on 4x4x2 in stock (stock top at Z=2 in)",
+      "lines": 284,
+      "status": "analysed",
+      "moves": 406,
+      "description": "4x step, 1x pocket 89x56x24",
+      "operations": [
+        "step_milling"
+      ],
+      "notes": [],
+      "warnings": [],
+      "default_tools": 0,
+      "runtime_s": 0.29
+    },
+    {
+      "file": "comp-g1.ngc",
+      "expected": "cutter-compensation demo, tool defined only in the controller's tool table",
+      "lines": 39,
+      "status": "analysed",
+      "moves": 78,
+      "description": "no features below faced surface",
+      "operations": [
+        "other",
+        "other"
+      ],
+      "notes": [],
+      "warnings": [
+        "Controller-side cutter compensation (G41/G42): coordinates are part edge, geometry approximate (offset by one tool radius)"
+      ],
+      "default_tools": 1,
+      "runtime_s": 0.038
+    },
+    {
+      "file": "daisy.ngc",
+      "expected": "macro-generated daisy pattern (o-word subroutine with arguments)",
+      "lines": 159,
+      "status": "analysed",
+      "moves": 53,
+      "description": "1x pocket 13x9x2",
+      "operations": [
+        "pocketing"
+      ],
+      "notes": [
+        "Macro program executed (50 parameters, 0 named; 0 loop iterations)"
+      ],
+      "warnings": [
+        "Unsupported code G93 ignored"
+      ],
+      "default_tools": 1,
+      "runtime_s": 0.027
+    },
+    {
+      "file": "g881.ngc",
+      "expected": "remap subroutine for a custom G81 (not a part program)",
+      "lines": 37,
+      "status": "rejected",
+      "reason": "ValueError: no cutting moves found"
+    },
+    {
+      "file": "gmoccapy_2_tools_with_cutter_radius_compensation.ngc",
+      "expected": "two circles milled with cutter compensation, two tools",
+      "lines": 93,
+      "status": "analysed",
+      "moves": 152,
+      "description": "1x pocket island 46x46x1",
+      "operations": [
+        "pocket_island",
+        "pocket_island"
+      ],
+      "notes": [],
+      "warnings": [
+        "Controller-side cutter compensation (G41/G42): coordinates are part edge, geometry approximate (offset by one tool radius)",
+        "Cutter compensation left active at end of program"
+      ],
+      "default_tools": 2,
+      "runtime_s": 0.028
+    },
+    {
+      "file": "hole-circle.ngc",
+      "expected": "6 bolt holes on a 3 in (76.2 mm) circle, polar coordinates + L repeat",
+      "lines": 12,
+      "status": "analysed",
+      "moves": 25,
+      "description": "6x hole \u00d86 on PCD 76",
+      "operations": [
+        "drilling"
+      ],
+      "notes": [],
+      "warnings": [],
+      "default_tools": 1,
+      "runtime_s": 0.039
+    },
+    {
+      "file": "lathe_pawn.ngc",
+      "expected": "lathe program (chess pawn): should be flagged, not milled",
+      "lines": 151,
+      "status": "analysed",
+      "moves": 486,
+      "description": "1x pocket 27x19x38, 1x pocket 19x19x38",
+      "operations": [
+        "pocketing"
+      ],
+      "notes": [],
+      "warnings": [
+        "Looks like a lathe (turning) program: milling reconstruction is not meaningful",
+        "Non-XY plane (G18/G19) arcs approximated as straight lines",
+        "Unsupported code G8 ignored"
+      ],
+      "default_tools": 1,
+      "runtime_s": 0.051
+    },
+    {
+      "file": "mmount.ngc",
+      "expected": "stepper-motor mount, multi-station fixture (G55-G57), macros",
+      "lines": 335,
+      "status": "analysed",
+      "moves": 3769,
+      "description": "7x hole \u00d86, 5x outline, 2x pocket 17x17x14, 1x pocket island 31x14x14, 1x pocket island 38x14x14, 1x pocket island 31x32x15, 1x slot 28x6x15, 1x pocket island 32x32x15, 1x slot 50x6x15, 1x slot 31x6x15, 1x hole \u00d82",
+      "operations": [
+        "drilling",
+        "pocket_island",
+        "drilling",
+        "drilling",
+        "profiling",
+        "other"
+      ],
+      "notes": [
+        "Macro program executed (33 parameters, 0 named; 70 loop iterations)"
+      ],
+      "warnings": [
+        "Controller-side cutter compensation (G41/G42): coordinates are part edge, geometry approximate (offset by one tool radius)",
+        "Several work offsets (G54-G59) used: separate set-ups or fixture stations are drawn in one coordinate frame and may overlap",
+        "Unsupported code G33.1 ignored"
+      ],
+      "default_tools": 7,
+      "runtime_s": 1.392
+    },
+    {
+      "file": "polar.ngc",
+      "expected": "3 + 1 + 5 + 17 = 26 holes using polar coordinates",
+      "lines": 21,
+      "status": "analysed",
+      "moves": 106,
+      "description": "26x hole \u00d86",
+      "operations": [
+        "drilling"
+      ],
+      "notes": [
+        "Macro program executed (0 parameters, 0 named; 0 loop iterations)"
+      ],
+      "warnings": [],
+      "default_tools": 1,
+      "runtime_s": 0.517
+    },
+    {
+      "file": "skeleton.ngc",
+      "expected": "empty program template (no cutting moves)",
+      "lines": 22,
+      "status": "rejected",
+      "reason": "ValueError: no cutting moves found"
+    },
+    {
+      "file": "spiral.ngc",
+      "expected": "spiral engraving, o-word repeat loop of 800 polar steps",
+      "lines": 13,
+      "status": "analysed",
+      "moves": 804,
+      "description": "1x circular pocket",
+      "operations": [
+        "bore"
+      ],
+      "notes": [
+        "Macro program executed (0 parameters, 0 named; 800 loop iterations)"
+      ],
+      "warnings": [],
+      "default_tools": 1,
+      "runtime_s": 0.181
+    },
+    {
+      "file": "tort.ngc",
+      "expected": "LinuxCNC interpreter torture test (random arcs/lines, not a real part)",
+      "lines": 282,
+      "status": "analysed",
+      "moves": 1800,
+      "description": "7x hole \u00d87, 5x hole \u00d86, 2x pocket 15x12x18, 2x hole \u00d89, 2x pocket 16x10x11, 1x pocket island 32x27x11, 1x pocket 14x7x12, 1x pocket island 25x22x8, 1x pocket 10x6x12, 1x pocket 27x15x18, 1x pocket 29x18x11, 1x pocket 21x15x9, 1x pocket 13x7x12, 1x pocket 25x20x8, 1x pocket 9x6x12, 1x pocket 18x13x9, 1x pocket 32x24x11, 1x pocket 12x7x12, 1x slot 23x10x8, 1x pocket 8x6x12, 1x pocket 10x6x5, 1x pocket 11x7x12, 1x pocket 25x15x11, 1x pocket 17x10x8, 1x pocket 15x11x18, 1x pocket 27x17x11, 1x pocket 10x7x12, 1x pocket 15x10x18, 1x pocket 24x17x11, 1x pocket 9x7x12, 1x pocket 14x9x11, 1x pocket 14x10x18, 1x pocket 11x8x11, 1x pocket 13x9x18, 1x pocket 12x9x18, 1x hole \u00d88",
+      "operations": [
+        "pocket_island"
+      ],
+      "notes": [],
+      "warnings": [
+        "Non-XY plane (G18/G19) arcs approximated as straight lines"
+      ],
+      "default_tools": 1,
+      "runtime_s": 0.376
+    },
+    {
+      "file": "x-trim.ngc",
+      "expected": "plasma trim, requires external subroutine touchoff.ngc",
+      "lines": 16,
+      "status": "analysed",
+      "moves": 4,
+      "description": "no features below faced surface",
+      "operations": [
+        "other"
+      ],
+      "notes": [],
+      "warnings": [
+        "Macro program could not be executed (subroutine o<touchoff> is defined in another file); macro lines skipped, geometry may be incomplete",
+        "Unsupported code G92 ignored",
+        "Unsupported code G92.1 ignored"
+      ],
+      "default_tools": 1,
+      "runtime_s": 0.012
+    }
+  ]
+}

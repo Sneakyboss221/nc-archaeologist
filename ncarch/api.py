@@ -183,21 +183,31 @@ SAMPLE_INFO = {
     "handwritten/fanuc_cutter_comp.nc": "Hand-written plate with cutter compensation (warning expected)",
     "handwritten/haas_subprogram.nc": "Hand-written tray using a subprogram (expanded automatically)",
     "handwritten/helical_no_comments.nc": "Hand-written pocket with helical entry, no tool comments",
-    "handwritten/macro_bolt_circle.nc": "Hand-written Fanuc macro program (warning expected)",
+    "handwritten/macro_bolt_circle.nc": "Hand-written Fanuc Macro B bolt circle (executed)",
     "handwritten/lathe_program.nc": "A lathe program (should be flagged as not milling)",
+    "real/3D_Chips.ngc": "REAL (LinuxCNC): 3D carving, 4,700 lines, parametric",
+    "real/mmount.ngc": "REAL (LinuxCNC): stepper-motor mount, macros, 3 fixture stations",
+    "real/cds.ngc": "REAL (LinuxCNC): Circle-Diamond-Square test part (inch)",
+    "real/polar.ngc": "REAL (LinuxCNC): 26 holes with polar coordinates",
+    "real/hole-circle.ngc": "REAL (LinuxCNC): 6-hole bolt circle, polar + repeat",
 }
+REAL = ROOT / "data_real" / "linuxcnc"
+
+
+def _sample_path(p):
+    return REAL / p[5:] if p.startswith("real/") else SAMPLES / p
 
 
 @app.get("/api/samples")
 def samples():
-    return [dict(path=p, label=l) for p, l in SAMPLE_INFO.items() if (SAMPLES / p).exists()]
+    return [dict(path=p, label=l) for p, l in SAMPLE_INFO.items() if _sample_path(p).exists()]
 
 
 @app.post("/api/identify_sample")
 def identify_sample(path: str):
     if path not in SAMPLE_INFO:
         raise HTTPException(404, "unknown sample")
-    return _identify((SAMPLES / path).read_text(), Path(path).stem)
+    return _identify(_sample_path(path).read_text(errors="replace"), Path(path).stem)
 
 
 @app.get("/api/playground_template")

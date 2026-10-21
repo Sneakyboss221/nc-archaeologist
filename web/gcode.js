@@ -24,7 +24,8 @@ export function explainLine(raw) {
   const out = [];
   const comment = (raw.match(/\(([^)]*)\)|;(.*)$/) || []).slice(1).find(Boolean);
   const code = raw.replace(/\([^)]*\)/g, " ").replace(/;.*$/, "").toUpperCase();
-  if (/#|\b(IF|WHILE|GOTO)\b/.test(code)) out.push("Macro programming (variables / logic): not executed by this tool, a warning is raised");
+  if (/#|\b(IF|WHILE|GOTO|REPEAT|SUB|CALL)\b|\[/.test(code)) out.push("Macro / parametric programming (variables, expressions, loops or subroutines): executed before simulation");
+  if (/[@^]/.test(code)) out.push("Polar coordinates: @ = radius, ^ = angle (degrees) about the origin");
   const words = [...code.matchAll(/([A-Z])\s*([-+]?(?:\d+\.?\d*|\.\d+))/g)].map((m) => [m[1], parseFloat(m[2])]);
   const v = Object.fromEntries(words.filter(([l]) => !"GMN".includes(l)));
   const gs = words.filter(([l]) => l === "G").map(([, n]) => n);

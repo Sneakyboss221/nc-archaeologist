@@ -94,8 +94,12 @@ Six steps: parse G-code → identify cutters → simulate material removal → b
 It's a **modal state machine**. G-code is modal: a `G1` stays active until changed, so a line like `X10` still means "cut to X10". We track motion mode, units, absolute/incremental mode, feed, spindle, current tool and drilling-cycle state. Arcs are cut into short straight chords (0.05 mm tolerance). Canned cycles are expanded into real moves. Subprograms in the same file are inlined.
 
 **23. What happens with things it can't handle?**
-It raises a **warning** instead of guessing: cutter compensation (G41/G42), macros (`#1=…`, WHILE), calls to external subprograms, non-XY planes, lathe programs.
-🖥 Upload `macro_bolt_circle.nc` → yellow banner.
+It raises a **warning** instead of guessing: cutter compensation (G41/G42), calls to subprograms stored in other files, non-XY planes, several work offsets, lathe programs.
+🖥 Run sample "Hand-written plate with cutter compensation" → yellow banner.
+
+**23b. What about macro / parametric programs?**
+They're executed. A macro layer runs before the interpreter: variables (`#1`, `#<scale>`), expressions in brackets, loops (`repeat`, `while`, Fanuc `WHILE…DO`), if/else, subroutines with arguments, and polar coordinates (`@` radius, `^` angle).
+🖥 Run sample "Hand-written Fanuc Macro B bolt circle" → 6 holes on PCD 80.
 
 **24. What is a dexel / height map?**
 The raw block is a grid of tiny columns, each 0.25 mm wide. Each column stores its height. For every cutting move, every column under the cutter is lowered to the cutter's tip height plus its shape. What's left at the end is the part.
@@ -171,7 +175,11 @@ We compute its fingerprint, scale it the same way as the archive, and pick the f
 No public labelled dataset of CNC programs exists, so we generated a benchmark: 8 part families, a mini CAM system, and 4 G-code dialects, with random sizes, rotation and work origin. That's 1,200 programs: 600 for development and 600 held out for testing.
 
 **43. Isn't that data fake?**
-It's synthetic, and the paper says so openly. It's standard when no labelled data exists, and it gives exact ground truth. We made it hard on purpose: four dialects, random rotation and origin, missing tool comments. We tuned only on the development set and measured once on the held-out set. We also tested hand-written vendor programs that the generator didn't produce. Validating on a real shop archive is the next step.
+It's synthetic, and the paper says so openly. It's standard when no labelled data exists, and it gives exact ground truth. We made it hard on purpose: four dialects, random rotation and origin, missing tool comments. We tuned only on the development set and measured once on the held-out set. We also tested **15 real, unmodified open-source programs from the LinuxCNC project**; see question 43b. Quantitative validation on a labelled shop archive is the next step.
+
+**43b. Did you test on real programs?**
+Yes: 15 unmodified example programs from the LinuxCNC project (open source, GPL-2.0), including a 4,700-line 3D carving, a motor mount from a workshop machine, and bolt circles. 13 were analysed; the other 2 aren't part programs (a remap subroutine and an empty template) and were correctly rejected. Since there's no ground truth, we checked results against what each file's comments say: `polar` should have 26 holes and we found 26; `hole-circle` has a 3-inch bolt circle and we measured PCD 76 mm (3 in = 76.2 mm). Testing on them also exposed parametric programming, loops and polar coordinates, which the synthetic data didn't have, so we extended the interpreter to run them.
+🖥 Run sample "REAL (LinuxCNC): 3D carving" or "REAL (LinuxCNC): stepper-motor mount".
 
 **44. What does ARI 0.797 mean?**
 ARI (Adjusted Rand Index) measures how well discovered clusters match the true families: 1 = perfect, 0 = random. 0.797 is strong. Text comparison scores 0.074, essentially random.
@@ -197,7 +205,9 @@ We posted the same 40 parts in all 4 dialects with different fixturing. Same par
 - Programs without tool comments (recovery drops).
 - Step recall is 80%.
 - Slot precision is 83%: some pockets get called slots.
-- Two hand-written programs were mislabelled (pockets at the edge of an unfaced part were called steps).
+- One hand-written program was mislabelled (pockets at the edge of an unfaced part were called steps).
+- Real files rarely state tool sizes, so their dimensions use a default (flagged).
+- Cutter compensation and subprograms stored in other files aren't executed (flagged).
 
 **51. How fast is it?**
 About 1.7 s per program on a laptop, run in parallel across CPU cores. All 600 programs take about 2–4 minutes.
@@ -248,8 +258,8 @@ All tuning was done on one dataset (seed 7), and the final numbers come from a s
 Ward needs the number of families but gives clean groups. HDBSCAN finds the number itself and flags odd programs, which is useful for spotting one-off parts.
 
 **64. What would you improve with more time?**
-1. Validate on a real shop archive.
-2. Execute Macro B and resolve cutter compensation.
+1. Validate on a labelled shop archive (with known part families).
+2. Resolve cutter compensation and read tool tables.
 3. Use 5-axis / tri-dexel models.
 4. Export STEP-NC features.
 5. Learn the fingerprint from data.
