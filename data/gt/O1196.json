@@ -1,0 +1,67 @@
+{
+ "family": "stepped_block",
+ "style": "minimal",
+ "spec": {
+  "W": 105.24432311831548,
+  "H": 84.92299949846338,
+  "T": 34.37838055507664,
+  "outline": null,
+  "features": [
+   {
+    "type": "step",
+    "x_edge": 2.5572590036753624,
+    "depth": 6.30053246827874,
+    "tool_d": 16.0
+   },
+   {
+    "type": "step",
+    "x_edge": -20.571955096863263,
+    "depth": 10.532995537901346,
+    "tool_d": 16.0
+   },
+   {
+    "type": "step",
+    "x_edge": -33.48811396094666,
+    "depth": 12.050856572595343,
+    "tool_d": 16.0
+   }
+  ],
+  "family": "stepped_block",
+  "face_depth": 0.0,
+  "stock_w": 109.24432311831548,
+  "stock_h": 88.92299949846338
+ },
+ "theta": 0.0,
+ "ox": 56.3508512118791,
+ "oy": 43.50925769575216,
+ "tools": {
+  "7": {
+   "diameter": 16.0,
+   "kind": "flat"
+  }
+ },
+ "profile_tool_d": null,
+ "cam": {
+  "stepover": 0.5485173774503251,
+  "stepdown": 1.7720895553249216,
+  "climb": true,
+  "strategy": "zigzag"
+ },
+ "ops": [
+  {
+   "name": "step",
+   "kind": "flat",
+   "tool_d": 16.0
+  },
+  {
+   "name": "step",
+   "kind": "flat",
+   "tool_d": 16.0
+  },
+  {
+   "name": "step",
+   "kind": "flat",
+   "tool_d": 16.0
+  }
+ ]
+}

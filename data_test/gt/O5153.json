@@ -1,0 +1,65 @@
+{
+ "family": "stepped_block",
+ "style": "haas",
+ "spec": {
+  "W": 72.39712522352086,
+  "H": 85.35503946961212,
+  "T": 32.81826691917277,
+  "outline": null,
+  "features": [
+   {
+    "type": "step",
+    "x_edge": -22.482011431213458,
+    "depth": 4.866418578016241,
+    "tool_d": 10.0
+   },
+   {
+    "type": "step",
+    "x_edge": -22.630413349317166,
+    "depth": 14.319241772187862,
+    "tool_d": 10.0
+   }
+  ],
+  "family": "stepped_block",
+  "face_depth": 0.6041055587218109,
+  "stock_w": 76.39712522352086,
+  "stock_h": 89.35503946961212
+ },
+ "theta": 1.034378463362343,
+ "ox": 55.33686109940737,
+ "oy": 55.71299924336995,
+ "tools": {
+  "1": {
+   "diameter": 50.0,
+   "kind": "face"
+  },
+  "19": {
+   "diameter": 10.0,
+   "kind": "flat"
+  }
+ },
+ "profile_tool_d": null,
+ "cam": {
+  "stepover": 0.41179852056678723,
+  "stepdown": 2.8704578408536157,
+  "climb": false,
+  "strategy": "spiral"
+ },
+ "ops": [
+  {
+   "name": "facing",
+   "kind": "face",
+   "tool_d": 50.0
+  },
+  {
+   "name": "step",
+   "kind": "flat",
+   "tool_d": 10.0
+  },
+  {
+   "name": "step",
+   "kind": "flat",
+   "tool_d": 10.0
+  }
+ ]
+}

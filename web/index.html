@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>NC-Archaeologist</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/plotly.js-dist-min@2.35.2/plotly.min.js"></script>
+  <script type="importmap">
+    { "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/" } }
+  </script>
+</head>
+<body>
+  <header class="top">
+    <div class="brand">
+      <svg viewBox="0 0 32 32" class="logo" aria-hidden="true"><rect x="3" y="18" width="26" height="10" rx="2"/><path d="M9 18v-5h5v5M18 18v-8h5v8"/><path d="M16 3v6M13 6h6"/></svg>
+      <div>
+        <h1>NC-Archaeologist</h1>
+        <p>Recovering parts &amp; part families from legacy CNC programs</p>
+      </div>
+    </div>
+    <nav class="nav" id="nav">
+      <button data-page="explorer" class="on">Explorer</button>
+      <button data-page="how">How it works</button>
+      <button data-page="dialects">Same part ×4</button>
+      <button data-page="playground">Playground</button>
+      <button data-page="results">Results</button>
+      <button data-page="glossary">Glossary</button>
+    </nav>
+    <div class="actions">
+      <select id="samples" class="select" aria-label="Run a sample program"><option value="">Run a sample…</option></select>
+      <input type="file" id="file" accept=".nc,.ngc,.tap,.gcode,.txt" hidden>
+      <button class="btn primary" id="upload">
+        <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3v10M5 8l5-5 5 5M4 16h12"/></svg>
+        Upload program
+      </button>
+      <button class="btn" id="tourbtn" title="Guided demo (← → keys)">▶ Demo tour</button>
+    </div>
+  </header>
+
+  <!-- ============================================================ EXPLORER -->
+  <main class="page" id="page-explorer">
+    <div class="statsbar" id="stats"></div>
+    <div class="layout">
+      <section class="col-left">
+        <div class="panel" id="p-map">
+          <div class="panel-head">
+            <h2>Archive map <span data-info="map"></span></h2>
+            <span class="hint">each dot = one program</span>
+          </div>
+          <div id="map" class="map"></div>
+        </div>
+        <div class="panel" id="p-families">
+          <div class="panel-head"><h2>Discovered part families <span data-info="families"></span></h2><span class="hint" id="famhint"></span></div>
+          <ul id="families" class="families"></ul>
+        </div>
+      </section>
+
+      <section class="col-right">
+        <div id="banner" class="banner" hidden></div>
+        <div class="panel viewer-panel" id="p-viewer">
+          <div class="panel-head">
+            <div>
+              <h2><span id="title">Select a program</span> <span data-info="viewer"></span></h2>
+              <p class="desc" id="desc">Click a dot on the map, run a sample, or upload a program.</p>
+            </div>
+            <a class="btn ghost stl" id="stl" href="#" download hidden>STL ↓</a>
+            <div class="seg" id="viewmode">
+              <button data-mode="part" class="on">Part</button>
+              <button data-mode="both">Part + toolpath</button>
+              <button data-mode="path">Toolpath</button>
+            </div>
+          </div>
+          <div id="warn" class="warn" hidden></div>
+          <div class="viewer-wrap">
+            <div id="viewer" class="viewer"></div>
+            <div class="chips" id="chips"></div>
+            <div class="legend" id="toollegend"></div>
+          </div>
+          <div class="simbar" id="simbar">
+            <button class="btn primary sm" id="simbtn">▶ Simulate machining</button>
+            <div class="seg" id="simspeed">
+              <button data-s="1" class="on">1×</button><button data-s="4">4×</button><button data-s="16">16×</button>
+            </div>
+            <div class="simprog"><div id="simfill"></div></div>
+            <div class="simline" id="simline">Replays the program: watch the cutter remove material, operation by operation.</div>
+          </div>
+        </div>
+
+        <div class="panel" id="p-tabs">
+          <nav class="tabs" id="tabs">
+            <button data-tab="process" class="on">Process sheet</button>
+            <button data-tab="features">Features</button>
+            <button data-tab="similar">Similar programs</button>
+            <button data-tab="gcode">G-code <small>(hover a line)</small></button>
+          </nav>
+          <div class="tab" id="tab-process"></div>
+          <div class="tab" id="tab-features" hidden></div>
+          <div class="tab" id="tab-similar" hidden></div>
+          <div class="tab" id="tab-gcode" hidden><pre id="gcode" class="gcode"></pre></div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- ============================================================ OTHER PAGES -->
+  <main class="page" id="page-how" hidden></main>
+  <main class="page" id="page-dialects" hidden></main>
+  <main class="page" id="page-playground" hidden></main>
+  <main class="page" id="page-results" hidden></main>
+  <main class="page" id="page-glossary" hidden></main>
+
+  <!-- ============================================================ MODALS -->
+  <div class="modal" id="modal" hidden>
+    <div class="modal-card">
+      <div class="panel-head">
+        <h2>Same part, different code?</h2>
+        <button class="btn ghost" id="closemodal" aria-label="Close">✕</button>
+      </div>
+      <div id="compare" class="compare"></div>
+    </div>
+  </div>
+
+  <div class="modal" id="procmodal" hidden>
+    <div class="modal-card narrow">
+      <div class="panel-head"><h2 id="proctitle">Analysing program</h2></div>
+      <ol class="stages" id="stages"></ol>
+      <p class="proc-foot" id="procfoot"></p>
+    </div>
+  </div>
+
+  <!-- ============================================================ TOUR -->
+  <div class="tourring" id="tourring" hidden></div>
+  <div class="tour" id="tour" hidden>
+    <div class="tour-step" id="tourstep"></div>
+    <div class="tour-body">
+      <div class="tour-say" id="toursay"></div>
+      <div class="tour-notes" id="tournotes" hidden></div>
+    </div>
+    <div class="tour-ctrl">
+      <button class="btn sm" id="tourprev">←</button>
+      <button class="btn primary sm" id="tournext">Next →</button>
+      <button class="btn ghost sm" id="tournotesbtn" title="Speaker notes (N)">Notes</button>
+      <button class="btn ghost sm" id="tourclose" title="Exit (Esc)">✕</button>
+    </div>
+  </div>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>

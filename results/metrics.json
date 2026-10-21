@@ -1,0 +1,313 @@
+{
+  "dataset": {
+    "n_programs": 600,
+    "families": 8,
+    "per_dialect": {
+      "haas": 152,
+      "fanuc": 152,
+      "minimal": 152,
+      "inch_inc": 144
+    },
+    "failed": []
+  },
+  "reconstruction": {
+    "summary": {
+      "all": {
+        "n": 600,
+        "rms_mm": 1.1737947572313445,
+        "median_rms_mm": 0.1953376282728397,
+        "mae_mm": 0.3260137057587547,
+        "iou": 0.9252525629207897,
+        "hole_recall": 1.0,
+        "hole_precision": 0.9987046632124352,
+        "hole_diam_mae_mm": 0.3697470817120621,
+        "hole_pos_mae_mm": 0.17727777373637107
+      },
+      "tools_from_comments": {
+        "n": 448,
+        "rms_mm": 0.1945002140265674,
+        "median_rms_mm": 0.11133432028612739,
+        "mae_mm": 0.0058131550931009674,
+        "iou": 0.9987605718893251,
+        "hole_recall": 1.0,
+        "hole_precision": 0.998272884283247,
+        "hole_diam_mae_mm": 0.01079584775086492,
+        "hole_pos_mae_mm": 0.17693622465169367
+      },
+      "tools_inferred": {
+        "n": 152,
+        "rms_mm": 4.060136568782267,
+        "median_rms_mm": 3.817057571177245,
+        "mae_mm": 1.2697626971943656,
+        "iou": 0.7085973785924747,
+        "hole_recall": 1.0,
+        "hole_precision": 1.0,
+        "hole_diam_mae_mm": 1.4447409326424872,
+        "hole_pos_mae_mm": 0.17830065130602674
+      }
+    },
+    "features": {
+      "circular_pocket": {
+        "tp": 74,
+        "fp": 0,
+        "fn": 1,
+        "precision": 1.0,
+        "recall": 0.9866666666666667
+      },
+      "hole": {
+        "tp": 1542,
+        "fp": 2,
+        "fn": 0,
+        "precision": 0.9987046632124352,
+        "recall": 1.0
+      },
+      "outline": {
+        "tp": 307,
+        "fp": 0,
+        "fn": 12,
+        "precision": 1.0,
+        "recall": 0.9623824451410659
+      },
+      "pocket": {
+        "tp": 529,
+        "fp": 14,
+        "fn": 53,
+        "precision": 0.9742173112338858,
+        "recall": 0.9089347079037801
+      },
+      "pocket_island": {
+        "tp": 75,
+        "fp": 8,
+        "fn": 0,
+        "precision": 0.9036144578313253,
+        "recall": 1.0
+      },
+      "slot": {
+        "tp": 262,
+        "fp": 52,
+        "fn": 0,
+        "precision": 0.8343949044585988,
+        "recall": 1.0
+      },
+      "step": {
+        "tp": 149,
+        "fp": 7,
+        "fn": 38,
+        "precision": 0.9551282051282052,
+        "recall": 0.7967914438502673
+      }
+    },
+    "iou_per_family": {
+      "bolt_plate": 0.837292070754528,
+      "pocket_housing": 0.9638599203028988,
+      "slotted_bracket": 0.9073413125684485,
+      "flange": 0.8881575804024476,
+      "stepped_block": 0.995929542243444,
+      "tray": 0.967971474812472,
+      "keyway_bar": 0.8762766583559598,
+      "boss": 0.9651919439261185
+    },
+    "iou_per_style": {
+      "fanuc": 0.998994142300157,
+      "haas": 0.9983904880678112,
+      "minimal": 0.7085973785924747,
+      "inch_inc": 0.9989046693783783
+    },
+    "runtime_mean_s": 1.7243966666666666,
+    "runtime_p95_s": 3.9166499999999984
+  },
+  "families": {
+    "text_tfidf_raw": {
+      "ari": 0.07449705562089805,
+      "nmi": 0.196785591406425,
+      "purity": 0.23166666666666666,
+      "k_auto": 4,
+      "silhouette": 0.28065169258241746,
+      "ari_auto": -0.006931793030489755,
+      "hdbscan_ari_inliers": -0.005831365524399997,
+      "hdbscan_outlier_frac": 0.09166666666666666,
+      "hdbscan_k": 4,
+      "p_at_5": 0.558,
+      "mAP": 0.20520230149081267,
+      "ari_vs_dialect": 0.6092112680627039
+    },
+    "text_tfidf_codes": {
+      "ari": 0.05473076431015221,
+      "nmi": 0.1765555908316949,
+      "purity": 0.23,
+      "k_auto": 5,
+      "silhouette": 0.5005444944783088,
+      "ari_auto": 0.047293921914291236,
+      "hdbscan_ari_inliers": 0.13085005039743203,
+      "hdbscan_outlier_frac": 0.21,
+      "hdbscan_k": 10,
+      "p_at_5": 0.5796666666666667,
+      "mAP": 0.2371930920130085,
+      "ari_vs_dialect": 0.5836289356127276
+    },
+    "process_only": {
+      "ari": 0.5716155018624876,
+      "nmi": 0.6676959300855148,
+      "purity": 0.695,
+      "k_auto": 11,
+      "silhouette": 0.46958494783012744,
+      "ari_auto": 0.5482840182221417,
+      "hdbscan_ari_inliers": 0.5496858986080424,
+      "hdbscan_outlier_frac": 0.06666666666666667,
+      "hdbscan_k": 17,
+      "p_at_5": 0.9223333333333333,
+      "mAP": 0.7455177376914961
+    },
+    "geometry_only": {
+      "ari": 0.6178730792948018,
+      "nmi": 0.7199774100162913,
+      "purity": 0.7766666666666666,
+      "k_auto": 12,
+      "silhouette": 0.26983000292986364,
+      "ari_auto": 0.565029215108973,
+      "hdbscan_ari_inliers": 0.7908057824702699,
+      "hdbscan_outlier_frac": 0.285,
+      "hdbscan_k": 12,
+      "p_at_5": 0.934,
+      "mAP": 0.774222090435052
+    },
+    "full": {
+      "ari": 0.7974255193620939,
+      "nmi": 0.8222261182254046,
+      "purity": 0.9066666666666666,
+      "k_auto": 9,
+      "silhouette": 0.3212292300772681,
+      "ari_auto": 0.7696901217826085,
+      "hdbscan_ari_inliers": 0.814652963548984,
+      "hdbscan_outlier_frac": 0.12666666666666668,
+      "hdbscan_k": 10,
+      "p_at_5": 0.939,
+      "mAP": 0.851495647366973,
+      "cross_dialect_neighbour_precision": 0.9398395721925134,
+      "cross_dialect_neighbour_share": 0.748,
+      "p_at_5_per_dialect": {
+        "fanuc": 0.9618421052631579,
+        "haas": 0.9276315789473685,
+        "minimal": 0.9407894736842105,
+        "inch_inc": 0.925
+      }
+    }
+  },
+  "tool_inference": {
+    "milling_tools": 339,
+    "inferred": 188,
+    "fell_back_to_default": 151,
+    "exact_of_inferred": 0.4308510638297872,
+    "within_one_size_of_inferred": 0.8191489361702128,
+    "coverage": 0.5545722713864307
+  },
+  "dialect_invariance": {
+    "n_parts": 40,
+    "n_programs": 160,
+    "sim_same_part": 0.9208495223791776,
+    "sim_same_family": 0.49984620529354135,
+    "sim_other_family": -0.08313965842943052,
+    "identical_description_rate": 0.25
+  },
+  "resolution": {
+    "0.5": {
+      "rms_mm": 0.694160356520055,
+      "iou": 0.9612445850450224,
+      "hole_diam_mae_mm": 0.27087378640776694,
+      "runtime_per_program_s": 0.39475
+    },
+    "0.25": {
+      "rms_mm": 0.694626626299717,
+      "iou": 0.961319034063211,
+      "hole_diam_mae_mm": 0.24288461538461525,
+      "runtime_per_program_s": 1.7472916666666667
+    },
+    "0.1": {
+      "rms_mm": 0.7030047665622224,
+      "iou": 0.961244658564994,
+      "hole_diam_mae_mm": 0.2379807692307691,
+      "runtime_per_program_s": 4.945916666666666
+    }
+  },
+  "handwritten": [
+    {
+      "file": "fanuc_cutter_comp.nc",
+      "lines": 32,
+      "description": "4x hole \u00d89, 1x outline",
+      "operations": [
+        "profiling",
+        "drilling"
+      ],
+      "warnings": [
+        "Controller-side cutter compensation (G41/G42): coordinates are part edge, geometry approximate (offset by one tool radius)"
+      ],
+      "cycle_time_s": 108.5
+    },
+    {
+      "file": "haas_subprogram.nc",
+      "lines": 44,
+      "description": "4x pocket 20x20x2",
+      "operations": [
+        "pocketing"
+      ],
+      "warnings": [],
+      "cycle_time_s": 55.9
+    },
+    {
+      "file": "helical_no_comments.nc",
+      "lines": 32,
+      "description": "4x hole \u00d86, 1x pocket 38x28x3",
+      "operations": [
+        "pocketing",
+        "drilling"
+      ],
+      "warnings": [
+        "T8: diameter unknown (no comment, no raster passes); assumed 6 mm"
+      ],
+      "cycle_time_s": 69.9
+    },
+    {
+      "file": "lathe_program.nc",
+      "lines": 14,
+      "description": "1x slot 36x6x25",
+      "operations": [
+        "slotting"
+      ],
+      "warnings": [
+        "Looks like a lathe (turning) program: milling reconstruction is not meaningful",
+        "Non-XY plane (G18/G19) arcs approximated as straight lines",
+        "Unsupported code G96 ignored",
+        "Unsupported code G71 ignored",
+        "Unsupported code G70 ignored",
+        "T101: diameter unknown (no comment, no raster passes); assumed 6 mm",
+        "T0: diameter unknown (no comment, no raster passes); assumed 6 mm"
+      ],
+      "cycle_time_s": 12275.5
+    },
+    {
+      "file": "linuxcnc_style.nc",
+      "lines": 35,
+      "description": "2x step",
+      "operations": [
+        "pocketing"
+      ],
+      "warnings": [
+        "Unsupported code G64 ignored"
+      ],
+      "cycle_time_s": 29.1
+    },
+    {
+      "file": "macro_bolt_circle.nc",
+      "lines": 26,
+      "description": "1x step",
+      "operations": [
+        "drilling",
+        "step_milling"
+      ],
+      "warnings": [
+        "Macro variables / control flow (#, IF, WHILE) not executed; geometry may be incomplete"
+      ],
+      "cycle_time_s": 43.4
+    }
+  ]
+}

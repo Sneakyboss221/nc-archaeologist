@@ -1,0 +1,81 @@
+{
+ "family": "keyway_bar",
+ "style": "fanuc",
+ "spec": {
+  "W": 149.07025445051818,
+  "H": 34.79971624316627,
+  "T": 23.530850772603507,
+  "outline": null,
+  "features": [
+   {
+    "type": "slot",
+    "x0": -29.553898230916108,
+    "y0": 0.0,
+    "x1": 29.553898230916108,
+    "y1": 0.0,
+    "w": 6.0,
+    "depth": 7.137809924157284,
+    "tool_d": 6.0
+   },
+   {
+    "type": "hole",
+    "x": -64.53512722525909,
+    "y": 0.0,
+    "d": 8.5,
+    "depth": 24.530850772603507
+   },
+   {
+    "type": "hole",
+    "x": 64.53512722525909,
+    "y": 0.0,
+    "d": 8.5,
+    "depth": 24.530850772603507
+   }
+  ],
+  "family": "keyway_bar",
+  "face_depth": 0.6119143208887914,
+  "stock_w": 153.07025445051818,
+  "stock_h": 38.79971624316627
+ },
+ "theta": 0.0,
+ "ox": 1.113542540473535,
+ "oy": -0.4868179837903508,
+ "tools": {
+  "14": {
+   "diameter": 40.0,
+   "kind": "face"
+  },
+  "17": {
+   "diameter": 6.0,
+   "kind": "flat"
+  },
+  "11": {
+   "diameter": 8.5,
+   "kind": "drill"
+  }
+ },
+ "profile_tool_d": null,
+ "cam": {
+  "stepover": 0.5392845403961657,
+  "stepdown": 1.9753562081550138,
+  "climb": true,
+  "strategy": "zigzag"
+ },
+ "ops": [
+  {
+   "name": "facing",
+   "kind": "face",
+   "tool_d": 40.0
+  },
+  {
+   "name": "slot",
+   "kind": "flat",
+   "tool_d": 6.0
+  },
+  {
+   "name": "drill",
+   "kind": "drill",
+   "tool_d": 8.5
+  }
+ ]
+}

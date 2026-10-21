@@ -1,0 +1,92 @@
+{
+ "family": "boss",
+ "style": "fanuc",
+ "spec": {
+  "W": 113.3357728710466,
+  "H": 60.66657466213921,
+  "T": 22.7330931001925,
+  "outline": {
+   "type": "rect",
+   "w": 113.3357728710466,
+   "h": 60.66657466213921,
+   "r": 5.553468356932023,
+   "depth": 23.2330931001925
+  },
+  "features": [
+   {
+    "type": "ring_pocket",
+    "x": 0.0,
+    "y": 0.0,
+    "w": 77.81869465851324,
+    "h": 43.43273109931525,
+    "island": {
+     "type": "circle",
+     "d": 20.700043595791477
+    },
+    "depth": 6.180397646332193,
+    "tool_d": 6.0
+   },
+   {
+    "type": "hole",
+    "x": 0.0,
+    "y": 0.0,
+    "d": 8.5,
+    "depth": 23.7330931001925
+   }
+  ],
+  "family": "boss",
+  "face_depth": 0.5996080675669779,
+  "stock_w": 117.3357728710466,
+  "stock_h": 64.66657466213921
+ },
+ "theta": 0.0,
+ "ox": 58.63826248812566,
+ "oy": 35.179077227364544,
+ "tools": {
+  "10": {
+   "diameter": 63.0,
+   "kind": "face"
+  },
+  "21": {
+   "diameter": 6.0,
+   "kind": "flat"
+  },
+  "9": {
+   "diameter": 8.5,
+   "kind": "drill"
+  },
+  "7": {
+   "diameter": 16.0,
+   "kind": "flat"
+  }
+ },
+ "profile_tool_d": 16.0,
+ "cam": {
+  "stepover": 0.40773256303442207,
+  "stepdown": 3.1597990940857774,
+  "climb": true,
+  "strategy": "zigzag"
+ },
+ "ops": [
+  {
+   "name": "facing",
+   "kind": "face",
+   "tool_d": 63.0
+  },
+  {
+   "name": "pocket_island",
+   "kind": "flat",
+   "tool_d": 6.0
+  },
+  {
+   "name": "drill",
+   "kind": "drill",
+   "tool_d": 8.5
+  },
+  {
+   "name": "profile",
+   "kind": "flat",
+   "tool_d": 16.0
+  }
+ ]
+}

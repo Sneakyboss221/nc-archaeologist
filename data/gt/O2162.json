@@ -1,0 +1,69 @@
+{
+ "family": "boss",
+ "style": "haas",
+ "spec": {
+  "W": 81.57317963367771,
+  "H": 75.25226753744518,
+  "T": 25.671600121995457,
+  "outline": null,
+  "features": [
+   {
+    "type": "ring_pocket",
+    "x": 0.0,
+    "y": 0.0,
+    "w": 63.49369038994609,
+    "h": 53.456316898402555,
+    "island": {
+     "type": "rect",
+     "w": 22.020510056915718,
+     "h": 22.020510056915718
+    },
+    "depth": 12.790476752183842,
+    "tool_d": 10.0
+   },
+   {
+    "type": "hole",
+    "x": 0.0,
+    "y": 0.0,
+    "d": 10.0,
+    "depth": 26.671600121995457
+   }
+  ],
+  "family": "boss",
+  "face_depth": 0.0,
+  "stock_w": 85.57317963367771,
+  "stock_h": 79.25226753744518
+ },
+ "theta": 2.3705851125299295,
+ "ox": 56.60572029923939,
+ "oy": 55.73208394205086,
+ "tools": {
+  "7": {
+   "diameter": 10.0,
+   "kind": "flat"
+  },
+  "13": {
+   "diameter": 10.0,
+   "kind": "drill"
+  }
+ },
+ "profile_tool_d": null,
+ "cam": {
+  "stepover": 0.5445221050817256,
+  "stepdown": 1.609604400140532,
+  "climb": true,
+  "strategy": "spiral"
+ },
+ "ops": [
+  {
+   "name": "pocket_island",
+   "kind": "flat",
+   "tool_d": 10.0
+  },
+  {
+   "name": "drill",
+   "kind": "drill",
+   "tool_d": 10.0
+  }
+ ]
+}

@@ -1,0 +1,20 @@
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+
+# Generated output. out_test/ (the analysed archive the dashboard loads) is kept
+# so a fresh copy runs the demo immediately; STL meshes are rebuilt on demand.
+out/
+out_test/stl/
+
+# LaTeX build files
+paper/*.aux
+paper/*.log
+paper/*.out
+paper/*.synctex.gz
+texput.log
+
+# Local tooling
+.claude/

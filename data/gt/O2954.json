@@ -1,0 +1,48 @@
+{
+ "family": "pocket_housing",
+ "style": "inch_inc",
+ "spec": {
+  "W": 117.87472452944888,
+  "H": 67.18241951008034,
+  "T": 32.119592151173634,
+  "outline": null,
+  "features": [
+   {
+    "type": "rect_pocket",
+    "x": 0.0,
+    "y": 0.0,
+    "w": 60.29085323355366,
+    "h": 44.91868437203499,
+    "depth": 16.366207009287905,
+    "tool_d": 12.0
+   }
+  ],
+  "family": "pocket_housing",
+  "face_depth": 0.0,
+  "stock_w": 121.87472452944888,
+  "stock_h": 71.18241951008034
+ },
+ "theta": 4.296105923892605,
+ "ox": -1.3443582319867105,
+ "oy": 0.7594692221656834,
+ "tools": {
+  "10": {
+   "diameter": 12.0,
+   "kind": "flat"
+  }
+ },
+ "profile_tool_d": null,
+ "cam": {
+  "stepover": 0.4357635811650149,
+  "stepdown": 2.806954207636911,
+  "climb": true,
+  "strategy": "zigzag"
+ },
+ "ops": [
+  {
+   "name": "pocket",
+   "kind": "flat",
+   "tool_d": 12.0
+  }
+ ]
+}

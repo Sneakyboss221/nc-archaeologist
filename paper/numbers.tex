@@ -1,0 +1,98 @@
+\newcommand{\NProg}{600}
+\newcommand{\NFam}{8}
+\newcommand{\NFailed}{0}
+\newcommand{\RecAllN}{600}
+\newcommand{\RecAllRMS}{1.17}
+\newcommand{\RecAllMedRMS}{0.20}
+\newcommand{\RecAllIoU}{0.925}
+\newcommand{\RecAllHoleRec}{100.0\%}
+\newcommand{\RecAllHolePrec}{99.9\%}
+\newcommand{\RecAllHoleD}{0.37}
+\newcommand{\RecAllHolePos}{0.18}
+\newcommand{\RecKnownN}{448}
+\newcommand{\RecKnownRMS}{0.19}
+\newcommand{\RecKnownMedRMS}{0.11}
+\newcommand{\RecKnownIoU}{0.999}
+\newcommand{\RecKnownHoleRec}{100.0\%}
+\newcommand{\RecKnownHolePrec}{99.8\%}
+\newcommand{\RecKnownHoleD}{0.01}
+\newcommand{\RecKnownHolePos}{0.18}
+\newcommand{\RecInfN}{152}
+\newcommand{\RecInfRMS}{4.06}
+\newcommand{\RecInfMedRMS}{3.82}
+\newcommand{\RecInfIoU}{0.709}
+\newcommand{\RecInfHoleRec}{100.0\%}
+\newcommand{\RecInfHolePrec}{100.0\%}
+\newcommand{\RecInfHoleD}{1.44}
+\newcommand{\RecInfHolePos}{0.18}
+\newcommand{\RunMean}{1.72}
+\newcommand{\RunPNF}{3.92}
+\newcommand{\TextRawARI}{0.074}
+\newcommand{\TextRawNMI}{0.197}
+\newcommand{\TextRawPURITY}{0.232}
+\newcommand{\TextRawPATFIVE}{0.558}
+\newcommand{\TextRawMAP}{0.205}
+\newcommand{\TextCodesARI}{0.055}
+\newcommand{\TextCodesNMI}{0.177}
+\newcommand{\TextCodesPURITY}{0.230}
+\newcommand{\TextCodesPATFIVE}{0.580}
+\newcommand{\TextCodesMAP}{0.237}
+\newcommand{\ProcARI}{0.572}
+\newcommand{\ProcNMI}{0.668}
+\newcommand{\ProcPURITY}{0.695}
+\newcommand{\ProcPATFIVE}{0.922}
+\newcommand{\ProcMAP}{0.746}
+\newcommand{\GeoARI}{0.618}
+\newcommand{\GeoNMI}{0.720}
+\newcommand{\GeoPURITY}{0.777}
+\newcommand{\GeoPATFIVE}{0.934}
+\newcommand{\GeoMAP}{0.774}
+\newcommand{\FullARI}{0.797}
+\newcommand{\FullNMI}{0.822}
+\newcommand{\FullPURITY}{0.907}
+\newcommand{\FullPATFIVE}{0.939}
+\newcommand{\FullMAP}{0.851}
+\newcommand{\TextRawDialect}{0.609}
+\newcommand{\TextCodesDialect}{0.584}
+\newcommand{\FullKAuto}{9}
+\newcommand{\FullARIAuto}{0.770}
+\newcommand{\FullHDBARI}{0.815}
+\newcommand{\FullHDBOut}{12.7\%}
+\newcommand{\FullHDBK}{10}
+\newcommand{\CrossDialectPrec}{94.0\%}
+\newcommand{\CrossDialectShare}{74.8\%}
+\newcommand{\TINTools}{339}
+\newcommand{\TICoverage}{55.5\%}
+\newcommand{\TIExact}{43.1\%}
+\newcommand{\TIOneSize}{81.9\%}
+\newcommand{\DINParts}{40}
+\newcommand{\DINProgs}{160}
+\newcommand{\DISamePart}{0.921}
+\newcommand{\DISameFam}{0.500}
+\newcommand{\DIOther}{-0.083}
+\newcommand{\DIDesc}{25.0\%}
+\newcommand{\ResCoarseRMS}{0.69}
+\newcommand{\ResCoarseIoU}{0.961}
+\newcommand{\ResCoarseTime}{0.39}
+\newcommand{\ResCoarseHoleD}{0.27}
+\newcommand{\ResMidRMS}{0.69}
+\newcommand{\ResMidIoU}{0.961}
+\newcommand{\ResMidTime}{1.75}
+\newcommand{\ResMidHoleD}{0.24}
+\newcommand{\ResFineRMS}{0.70}
+\newcommand{\ResFineIoU}{0.961}
+\newcommand{\ResFineTime}{4.95}
+\newcommand{\ResFineHoleD}{0.24}
+\newcommand{\FeatureRows}{circular pocket & 75 & 1.000 & 0.987 \\
+hole & 1542 & 0.999 & 1.000 \\
+outline & 319 & 1.000 & 0.962 \\
+pocket & 582 & 0.974 & 0.909 \\
+pocket island & 75 & 0.904 & 1.000 \\
+slot & 262 & 0.834 & 1.000 \\
+step & 187 & 0.955 & 0.797 \\}
+\newcommand{\HandRows}{\texttt{fanuc\_\allowbreak cutter\_\allowbreak comp} (32 lines) & 4x hole $\varnothing$9, 1x outline \newline \footnotesize{warnings: Controller-side cutter compensation} \\
+\texttt{haas\_\allowbreak subprogram} (44 lines) & 4x pocket 20x20x2 \newline \footnotesize{warnings: none} \\
+\texttt{helical\_\allowbreak no\_\allowbreak comments} (32 lines) & 4x hole $\varnothing$6, 1x pocket 38x28x3 \newline \footnotesize{warnings: T8} \\
+\texttt{lathe\_\allowbreak program} (14 lines) & 1x slot 36x6x25 \newline \footnotesize{warnings: Looks like a lathe; Non-XY plane} \\
+\texttt{linuxcnc\_\allowbreak style} (35 lines) & 2x step \newline \footnotesize{warnings: Unsupported code G64 ignored} \\
+\texttt{macro\_\allowbreak bolt\_\allowbreak circle} (26 lines) & 1x step \newline \footnotesize{warnings: Macro variables / control flow} \\}

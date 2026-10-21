@@ -1,0 +1,76 @@
+{
+ "family": "boss",
+ "style": "fanuc",
+ "spec": {
+  "W": 100.92470687730986,
+  "H": 104.53677548302014,
+  "T": 26.653847868915086,
+  "outline": {
+   "type": "rect",
+   "w": 100.92470687730986,
+   "h": 104.53677548302014,
+   "r": 4.226195210461484,
+   "depth": 27.153847868915086
+  },
+  "features": [
+   {
+    "type": "ring_pocket",
+    "x": 0.0,
+    "y": 0.0,
+    "w": 76.52625545334875,
+    "h": 83.01017246609614,
+    "island": {
+     "type": "circle",
+     "d": 35.428749026916826
+    },
+    "depth": 12.135831166721484,
+    "tool_d": 12.0
+   }
+  ],
+  "family": "boss",
+  "face_depth": 0.7590348569864086,
+  "stock_w": 104.92470687730986,
+  "stock_h": 108.53677548302014
+ },
+ "theta": 4.71238898038469,
+ "ox": 1.641461138804397,
+ "oy": 2.9145110126083713,
+ "tools": {
+  "5": {
+   "diameter": 40.0,
+   "kind": "face"
+  },
+  "12": {
+   "diameter": 12.0,
+   "kind": "flat"
+  },
+  "14": {
+   "diameter": 10.0,
+   "kind": "flat"
+  }
+ },
+ "profile_tool_d": 10.0,
+ "cam": {
+  "stepover": 0.40345504957337364,
+  "stepdown": 1.827542773820001,
+  "climb": true,
+  "strategy": "spiral"
+ },
+ "ops": [
+  {
+   "name": "facing",
+   "kind": "face",
+   "tool_d": 40.0
+  },
+  {
+   "name": "pocket_island",
+   "kind": "flat",
+   "tool_d": 12.0
+  },
+  {
+   "name": "profile",
+   "kind": "flat",
+   "tool_d": 10.0
+  }
+ ]
+}

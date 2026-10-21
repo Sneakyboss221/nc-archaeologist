@@ -1,0 +1,76 @@
+{
+ "family": "boss",
+ "style": "haas",
+ "spec": {
+  "W": 82.59341677618046,
+  "H": 77.52880665238725,
+  "T": 21.26595462984277,
+  "outline": {
+   "type": "rect",
+   "w": 82.59341677618046,
+   "h": 77.52880665238725,
+   "r": 4.743328529471734,
+   "depth": 21.76595462984277
+  },
+  "features": [
+   {
+    "type": "ring_pocket",
+    "x": 0.0,
+    "y": 0.0,
+    "w": 56.02162342512054,
+    "h": 55.92164640892451,
+    "island": {
+     "type": "circle",
+     "d": 17.761618861276744
+    },
+    "depth": 6.264355595977596,
+    "tool_d": 12.0
+   }
+  ],
+  "family": "boss",
+  "face_depth": 0.5501576007252316,
+  "stock_w": 86.59341677618046,
+  "stock_h": 81.52880665238725
+ },
+ "theta": 0.0,
+ "ox": 1.91975657138806,
+ "oy": 2.2661471045477946,
+ "tools": {
+  "1": {
+   "diameter": 50.0,
+   "kind": "face"
+  },
+  "12": {
+   "diameter": 12.0,
+   "kind": "flat"
+  },
+  "3": {
+   "diameter": 16.0,
+   "kind": "flat"
+  }
+ },
+ "profile_tool_d": 16.0,
+ "cam": {
+  "stepover": 0.4753015129845408,
+  "stepdown": 2.8574447614876672,
+  "climb": false,
+  "strategy": "zigzag"
+ },
+ "ops": [
+  {
+   "name": "facing",
+   "kind": "face",
+   "tool_d": 50.0
+  },
+  {
+   "name": "pocket_island",
+   "kind": "flat",
+   "tool_d": 12.0
+  },
+  {
+   "name": "profile",
+   "kind": "flat",
+   "tool_d": 16.0
+  }
+ ]
+}

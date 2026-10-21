@@ -1,0 +1,61 @@
+{
+ "family": "boss",
+ "style": "haas",
+ "spec": {
+  "W": 92.6753558483898,
+  "H": 96.3142130421177,
+  "T": 20.10307290281242,
+  "outline": null,
+  "features": [
+   {
+    "type": "ring_pocket",
+    "x": 0.0,
+    "y": 0.0,
+    "w": 64.3272701626253,
+    "h": 62.72932554269259,
+    "island": {
+     "type": "circle",
+     "d": 24.386196871926852
+    },
+    "depth": 9.363788334726552,
+    "tool_d": 12.0
+   }
+  ],
+  "family": "boss",
+  "face_depth": 0.8972462026972776,
+  "stock_w": 96.6753558483898,
+  "stock_h": 100.3142130421177
+ },
+ "theta": 3.141592653589793,
+ "ox": 0.8287716312874762,
+ "oy": 1.2599553690535235,
+ "tools": {
+  "19": {
+   "diameter": 63.0,
+   "kind": "face"
+  },
+  "13": {
+   "diameter": 12.0,
+   "kind": "flat"
+  }
+ },
+ "profile_tool_d": null,
+ "cam": {
+  "stepover": 0.5001275184087649,
+  "stepdown": 2.042127705458978,
+  "climb": false,
+  "strategy": "zigzag"
+ },
+ "ops": [
+  {
+   "name": "facing",
+   "kind": "face",
+   "tool_d": 63.0
+  },
+  {
+   "name": "pocket_island",
+   "kind": "flat",
+   "tool_d": 12.0
+  }
+ ]
+}

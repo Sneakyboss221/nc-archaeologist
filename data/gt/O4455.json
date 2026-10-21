@@ -1,0 +1,62 @@
+{
+ "family": "boss",
+ "style": "fanuc",
+ "spec": {
+  "W": 100.23950683453927,
+  "H": 80.86339657918367,
+  "T": 20.610571810134754,
+  "outline": null,
+  "features": [
+   {
+    "type": "ring_pocket",
+    "x": 0.0,
+    "y": 0.0,
+    "w": 80.08975057761886,
+    "h": 52.85159534386017,
+    "island": {
+     "type": "rect",
+     "w": 18.177773193820087,
+     "h": 18.177773193820087
+    },
+    "depth": 9.89571378774018,
+    "tool_d": 10.0
+   }
+  ],
+  "family": "boss",
+  "face_depth": 0.5292401204828292,
+  "stock_w": 104.23950683453927,
+  "stock_h": 84.86339657918367
+ },
+ "theta": 0.0,
+ "ox": 52.67510491591554,
+ "oy": 41.760165789581706,
+ "tools": {
+  "16": {
+   "diameter": 63.0,
+   "kind": "face"
+  },
+  "9": {
+   "diameter": 10.0,
+   "kind": "flat"
+  }
+ },
+ "profile_tool_d": null,
+ "cam": {
+  "stepover": 0.5998965112486974,
+  "stepdown": 3.443712994366737,
+  "climb": false,
+  "strategy": "zigzag"
+ },
+ "ops": [
+  {
+   "name": "facing",
+   "kind": "face",
+   "tool_d": 63.0
+  },
+  {
+   "name": "pocket_island",
+   "kind": "flat",
+   "tool_d": 10.0
+  }
+ ]
+}
