@@ -103,7 +103,10 @@ details[open] summary { margin-bottom: 8px; }
   <a href="#paper"><span>8 · The paper</span><span>3m</span></a>
   <a href="#close"><span>9 · Limits &amp; closing</span><span>1m</span></a>
   <a href="#qa"><span>10 · Q&amp;A answers</span><span></span></a>
-  <a href="#rescue"><span>11 · If something breaks</span><span></span></a>
+  <a href="#deep"><span>11 · Under the hood</span><span></span></a>
+  <a href="#code"><span>12 · Show me the code</span><span></span></a>
+  <a href="#where"><span>13 · "Show me…" map</span><span></span></a>
+  <a href="#rescue"><span>14 · If something breaks</span><span></span></a>
   <a href="#short"><span>Short version (10 min)</span><span></span></a>
 </nav>
 
@@ -122,7 +125,8 @@ details[open] summary { margin-bottom: 8px; }
   <li><input type="checkbox" id="c3"><label for="c3">Open PowerShell and run the two commands below. Leave the window open (minimise it).</label></li>
   <li><input type="checkbox" id="c4"><label for="c4">In Chrome, open <b>http://127.0.0.1:8765</b> (type <code>http://</code>, not https). Wait for 600 dots on the map.</label></li>
   <li><input type="checkbox" id="c5"><label for="c5">Warm-up: click <b>Same part ×4</b> (wait for the four parts), then <b>Results</b>, then <b>Explorer</b>. Then press <kbd>F5</kbd> to reload so the map is clean.</label></li>
-  <li><input type="checkbox" id="c6"><label for="c6">Open the paper in a second Chrome tab: drag <code>Downloads\NC-Archaeologist\nc-archaeologist\paper\main.pdf</code> onto Chrome. Keep only these 2 tabs open.</label></li>
+  <li><input type="checkbox" id="c6"><label for="c6">Open the paper in a second Chrome tab: drag <code>Downloads\NC-Archaeologist\nc-archaeologist\paper\main.pdf</code> onto Chrome. Close any other tabs.</label></li>
+  <li><input type="checkbox" id="c11"><label for="c11">Third Chrome tab: <b>github.com/Sneakyboss221/nc-archaeologist</b>, logged in (the repo is private). Only used if he asks to see the code (section 12).</label></li>
   <li><input type="checkbox" id="c7"><label for="c7">Zoom: on a small laptop screen press <kbd>Ctrl</kbd> <kbd>−</kbd> once (90%) on the dashboard tab so everything fits.</label></li>
   <li><input type="checkbox" id="c8"><label for="c8">Join Meet from <b>laptop 1 only</b>. Test the mic. Camera at eye level.</label></li>
   <li><input type="checkbox" id="c9"><label for="c9">Laptop 2: open this page, brightness up, placed right beside laptop 1's camera so your eyes stay near the camera. <b>Do not join Meet on laptop 2</b> (it causes echo).</label></li>
@@ -380,13 +384,148 @@ details[open] summary { margin-bottom: 8px; }
 <details><summary>How fast is it? What tools did you use?</summary>
 <p>"About 1.7 seconds per program on a laptop, run in parallel. Python with NumPy, SciPy, scikit-image and scikit-learn; a FastAPI server; the dashboard uses Three.js for 3D and Plotly for charts; the paper is LaTeX in IEEE format."</p></details>
 
+<details><summary>How did you generate the 1,200 test programs?</summary>
+<p>"With a generator I wrote in three parts. First, <b>8 parametric part families</b> (bolt plate, pocket housing, slotted bracket, flange, stepped block, tray, keyway bar, boss) with random dimensions, hole counts and depths. Second, a <b>mini CAM system</b> that turns each part into toolpaths: zig-zag or spiral pocketing, peck drilling, slots, profiles. Third, <b>four post-processors</b> that write the same toolpath as Fanuc, Haas, comment-free, or inch-incremental G-code. Each part is also rotated and offset randomly on the table. The true family and exact designed geometry are saved separately and used only for scoring."</p></details>
+
 <details><summary>What would you do next?</summary>
 <p>"Validate on a labelled archive from a real shop, resolve cutter compensation from tool tables, extend to 5-axis, and export STEP-NC features."</p></details>
 </section>
 
 <!-- ============================================================ -->
+<section id="deep">
+<h2>11 · Under the hood <span class="t">IF HE SAYS "EXPLAIN EXACTLY WHAT HAPPENS"</span></h2>
+<p class="tip">Open the <b>How it works</b> page first, then go step by step. Stop after each step and ask "Shall I go deeper on this one?". He'll pick what interests him.</p>
+
+<h3>Input</h3>
+<div class="say">
+<p>"The input is one plain text file, a CNC program in G-code, ISO 6983: <code>.nc</code>, <code>.ngc</code>, <code>.tap</code> or <code>.txt</code>. That's all. <b>No CAD model, no drawing, no stock size, no tool table.</b> Each line is a block of words, a letter and a number, like <code>G01 X25 Y10 F300</code>. The output is the rebuilt part, the process sheet, the recognised features, a 75-number fingerprint and a part family."</p>
+</div>
+
+<h3>Step 1: pre-processing, subprograms and macros</h3>
+<div class="say">
+<p>"Before interpreting, the program is flattened. Fanuc subprograms, <code>M98 P2100 L4</code> with an <code>O2100 … M99</code> body, are pasted in, four times in that case.</p>
+<p>Parametric programs go through a <b>macro interpreter</b>. It has a tokenizer and a <b>recursive-descent expression parser</b> with operator precedence: logical operators lowest, then comparisons, then plus and minus, then multiply, divide and MOD, then power. It supports functions like SIN, COS, ATAN and SQRT in degrees. Parameters are stored in a table, numbered like <code>#1</code> or named like <code>#&lt;scale&gt;</code>.</p>
+<p>For control flow, a pre-scan builds a <b>jump table</b> matching every if/else/endif, while, repeat and sub/endsub. It then executes with a program counter, and a <b>call stack</b> saves subroutine arguments. Fanuc <code>WHILE … DO</code> / <code>END</code> works the same way. A step limit stops infinite loops. The output is plain G-code with every expression replaced by its number."</p>
+</div>
+
+<h3>Step 2: the interpreter, a state machine</h3>
+<div class="say">
+<p>"The interpreter is a <b>modal state machine</b>, like a real CNC controller. G-code is modal: G1 stays active until another motion code, so a line with only <code>X35</code> still means 'cut to X35'.</p>
+<p>It tracks the motion mode, units (G20 inches are multiplied by 25.4), absolute or incremental mode, feed, spindle, the current tool, the drilling-cycle words Z, R and Q, and the retract plane. For each line it regex-tokenises the words, updates the modes, computes the target position (absolute, incremental, or polar with x = r cos a, y = r sin a), and emits a <b>segment</b>: start point, end point, rapid or cutting, tool, feed, spindle and the source line number.</p>
+<p>For <b>arcs</b>, the centre comes from the I and J offsets, or from the R radius using chord geometry: the centre sits h = √(r² − (d/2)²) from the chord midpoint. The arc is cut into straight chords with an angle step of 2·acos(1 − tol/r), with a tolerance of 0.05 mm, which <b>guarantees no chord deviates more than 0.05 mm</b> from the true arc.</p>
+<p><b>Drilling cycles</b> like G83 are expanded into: rapid to the hole at the start height, rapid to R, feed to Z, retract. The peck count, ceil(depth / Q) − 1, goes into the cycle time. Anything it can't execute faithfully goes into a <b>warnings list</b>."</p>
+</div>
+
+<h3>Step 3: cutter sizes</h3>
+<div class="say">
+<p>"Tool sizes come from comments when present: a regex reads the number, the diameter (with inches converted) and the type, flat, ball, drill or face. If a tool's sideways travel is under 5 percent of its vertical travel, it only plunges, so it's a drill.</p>
+<p>When the size isn't written, I use what I call <b>raster-run inference</b>. Walking the moves at one depth, a pass is a move longer than 4 mm, a link is a short move between passes, and the next pass must run in the <b>opposite direction</b> (direction dot product below −0.9998). Three or more such passes make a zig-zag run. The perpendicular gap between passes is the step-over, and the diameter is the step-over divided by 0.5, snapped to the nearest standard cutter: 6, 8, 10, 12, 16 mm and so on."</p>
+</div>
+
+<h3>Step 4: material-removal simulation</h3>
+<div class="say">
+<p>"The stock is a <b>2.5D dexel or height map</b>: a NumPy 2D array with one height per 0.25 mm cell, covering all cutting moves plus the cutter radius plus a 2 mm margin. The stock top is Z = 0, the standard convention.</p>
+<p>For every cutting move: <b>new height = minimum of old height and tool tip height plus tool profile at distance r</b>. The profile is zero for a flat end mill, R − √(R² − r²) for a ball end, and r / tan 59° for a 118° drill point.</p>
+<p>For flat cutters it's <b>exact, in closed form, with no sampling</b>. Each cell is projected onto the move, giving a position t and a sideways distance p. The cutter covers that cell for t in an interval of half-width √(R² − p²) / L. Since height changes linearly along the move, the lowest point is at one end of that interval. This is vectorised with NumPy over a small window around each move. Ball and drill tools are sampled every 0.75 cell. For each tool it also stores which cells it removed and the volume: the sum of height change times cell area. It takes about one to two seconds per program."</p>
+</div>
+
+<h3>Step 5: process sheet</h3>
+<div class="say">
+<p>"The program is split at each tool change and each block goes through a decision tree on what it removed:</p>
+<ul>
+<li>plunges only → drilling</li>
+<li>at most 1.6 mm deep over more than 45% of the area → facing</li>
+<li>encloses an uncut island bigger than itself → profiling, that is, cutting the outline</li>
+<li>runs past the stock edge → step milling</li>
+<li>encloses a small island → island pocket</li>
+<li>long, with width under 1.6 times the cutter → slotting</li>
+<li>round → bore</li>
+<li>otherwise → pocketing</li>
+</ul>
+<p>Cycle time is the sum of length over feed, plus rapids at 10 metres per minute, 8 seconds per tool change and 1 second per peck. The stock edge is estimated from the facing toolpath, because facing passes overrun the block by about one cutter radius."</p>
+</div>
+
+<h3>Step 6: feature recognition</h3>
+<div class="say">
+<p>"I compute the depth image, then find the <b>floor depths</b>: only flat cells, with slope under 0.05, so sloped drill cones don't create false levels. A 0.5 mm histogram gives the floor levels, and the depth map is sliced between them. At each level: morphological closing and opening to clean the grid edges, then <b>connected-component labelling</b> with SciPy. A region's parent is the region it sits inside one level up, which gives nesting.</p>
+<p>For each region I measure circularity, 4πA / P²; the principal axes from <b>PCA</b> of its pixel coordinates, which give aspect, length and width; the <b>fill ratio</b>, area over length times width, which is 0.785 for a circle and about 1 for a square and so separates round from square pockets; and the enclosed island area. Then it's classified: hole if round and up to 14 mm, slot if long and narrow, step if open to the edge, and so on. A <b>bolt circle</b> needs the holes at the same distance from their centre within 5 percent <i>and</i> evenly spaced within 10 percent, because rectangle corners are also on a circle."</p>
+</div>
+
+<h3>Step 7: fingerprint</h3>
+<div class="say">
+<p>"First I remove facing, the outer profile ring and anything outside the stock, because those depend on the raw blank, not the design. Then:</p>
+<p><b>46 geometry numbers</b>: a 12-bin depth histogram relative to the deepest cut; the <b>7 Hu moment invariants</b>, log-scaled, which don't change with rotation, translation or scale; a 12-bin radial depth profile around the depth-weighted centre, normalised by the radius of gyration; 7 feature counts; and 8 shape terms like elongation, hole size and the bolt-circle flag.</p>
+<p><b>29 process numbers</b>: for 9 operation types, the share of time, whether it's present, and how many, plus the number of tools and tool changes.</p>
+<p>Every number is z-scored, and each block is weighted 0.5 divided by the square root of its size so the larger block doesn't dominate."</p>
+</div>
+
+<h3>Step 8: families, search, new uploads</h3>
+<div class="say">
+<p>"<b>Ward agglomerative clustering</b> repeatedly merges the two groups whose merger increases within-group variance the least. The number of families comes from the <b>silhouette score</b> over 4 to 12; it chose 9, and the truth is 8. <b>HDBSCAN</b>, a density-based method, finds families by itself and flags outliers.</p>
+<p>'Find similar' uses <b>cosine similarity</b> between fingerprints. The map is <b>t-SNE</b>, a 2D projection for display only. A new upload gets the same fingerprint and scaling and joins the <b>nearest family centre</b>; if nothing is similar enough, it's flagged as a new part type."</p>
+</div>
+
+<h3>Architecture and technologies</h3>
+<div class="say">
+<p>"It's a <b>Python</b> back end and a browser front end.</p>
+<p>The analysis uses <b>NumPy</b> for the arrays and the simulation, <b>SciPy</b> for labelling and morphology, <b>scikit-image</b> for region properties and Hu moments, <b>scikit-learn</b> for scaling, Ward, HDBSCAN and t-SNE, and <b>trimesh</b> for STL export.</p>
+<p><b>FastAPI</b> with Uvicorn serves REST endpoints: upload and identify, program details, similar programs, compare, results. The 600-program archive is processed in parallel, one process per CPU core, and cached as JSON.</p>
+<p>The height map is sent to the browser compactly as 16-bit integers. <b>Three.js</b> builds the 3D mesh from it, and the machining animation re-runs the cutter stamping in JavaScript, ending exactly on the server's result. <b>Plotly</b> draws the map and charts.</p>
+<p>There are 22 <b>pytest</b> tests, and the paper is <b>LaTeX</b> in the IEEE template, with every number generated from the results file."</p>
+</div>
+
+<h3>If he says "trace one line for me"</h3>
+<div class="say">
+<p>"Take <code>G83 X25 Y0 Z-15 R2 Q3</code>. The parser expands it into three segments: rapid down to Z 2, feed down to Z −15, rapid back up. The simulator lowers every cell within the drill radius around X 25 Y 0 to −15 plus the cone shape. Feature recognition finds a small, round connected region with circularity above 0.75 and diameter under 14 mm, so it's a hole. If the other holes sit at equal distance and even spacing around a centre, it reports a bolt circle with its diameter."</p>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section id="code">
+<h2>12 · Show me the code <span class="t">GITHUB TAB</span></h2>
+<p class="tip">Switch to the GitHub tab. Click into <code>ncarch</code>, then the folder, then the file. Press <kbd>Ctrl</kbd> <kbd>F</kbd> and type the function name to jump to it. Point at the lines; don't read them.</p>
+<div class="tablewrap"><table>
+<thead><tr><th>Step</th><th>Open file</th><th>Find (Ctrl F)</th><th>Point at / say</th></tr></thead>
+<tbody>
+<tr><td>Whole pipeline</td><td><code>ncarch/pipeline.py</code></td><td><code>def analyze_text</code></td><td>"This one function runs all the stages in order: parse, cutters, simulate, process sheet, features, fingerprint."</td></tr>
+<tr><td>Parser</td><td><code>ncarch/gcode/parser.py</code></td><td><code>def parse</code></td><td>"The modal state: motion, units, incremental, feed, tool. Then the loop over every line."</td></tr>
+<tr><td>Arcs</td><td><code>ncarch/gcode/arcs.py</code></td><td><code>def linearize_arc</code></td><td>"The angle step from the 0.05 mm chord tolerance."</td></tr>
+<tr><td>Macros</td><td><code>ncarch/gcode/macro.py</code></td><td><code>class Expr</code></td><td>"Recursive-descent expression parser with operator precedence."</td></tr>
+<tr><td>Cutter inference</td><td><code>ncarch/sim/tools.py</code></td><td><code>def _stepovers</code></td><td>"Raster-run detection: antiparallel passes joined by short links."</td></tr>
+<tr><td>Simulation</td><td><code>ncarch/sim/stock.py</code></td><td><code>def stamp</code></td><td>"The closed-form sweep for flat cutters, vectorised with NumPy."</td></tr>
+<tr><td>Process sheet</td><td><code>ncarch/analysis/process.py</code></td><td><code>def classify_block</code></td><td>"The decision tree that names each operation."</td></tr>
+<tr><td>Features</td><td><code>ncarch/analysis/geometry.py</code></td><td><code>def recognize</code></td><td>"Floor levels, connected components, nesting; <code>def classify</code> has the rules."</td></tr>
+<tr><td>Fingerprint</td><td><code>ncarch/analysis/fingerprint.py</code></td><td><code>def geometry_vector</code></td><td>"Depth histogram, Hu moments, radial profile, counts."</td></tr>
+<tr><td>Families</td><td><code>ncarch/families/cluster.py</code></td><td><code>def discover</code></td><td>"HDBSCAN plus Ward with the silhouette choice of k."</td></tr>
+<tr><td>Web server</td><td><code>ncarch/api.py</code></td><td><code>@app.post("/api/identify")</code></td><td>"The upload endpoint the dashboard calls."</td></tr>
+<tr><td>Tests</td><td><code>tests/</code></td><td>open <code>test_sim.py</code></td><td>"For example, a 10 by 10 by 2 mm pocket must remove the exact geometric volume within 2 percent."</td></tr>
+<tr><td>Experiments</td><td><code>experiments/run_all.py</code></td><td><code>def families</code></td><td>"Computes ARI, NMI and P@5 against the text baselines; every paper number comes from here."</td></tr>
+</tbody></table></div>
+<div class="say"><p>"The repository README also documents every algorithm, threshold and endpoint, and how to reproduce the paper's results with a few commands."</p></div>
+</section>
+
+<!-- ============================================================ -->
+<section id="where">
+<h2>13 · "Show me…" quick map</h2>
+<div class="tablewrap"><table>
+<thead><tr><th>If he says…</th><th>Click</th></tr></thead>
+<tbody>
+<tr><td>"Show me it working on a new file"</td><td>Run a sample → any REAL (LinuxCNC) program, or Upload program</td></tr>
+<tr><td>"Show me what it can't handle"</td><td>Run a sample → Hand-written plate with cutter compensation, or the lathe program (yellow warnings)</td></tr>
+<tr><td>"Show me a macro program"</td><td>Run a sample → Hand-written Fanuc Macro B bolt circle (6 holes on PCD 80)</td></tr>
+<tr><td>"Explain this G-code line"</td><td>Explorer → G-code tab → hover the line</td></tr>
+<tr><td>"How do you know it's correct?"</td><td>Results page (0.999 IoU, 100% holes) and Same part ×4</td></tr>
+<tr><td>"Change something live"</td><td>Playground → edit a number → Run</td></tr>
+<tr><td>"What's the output?"</td><td>Process sheet + Features tabs, and <span class="k">STL ↓</span> above the 3D view (downloads the part)</td></tr>
+<tr><td>"What does this term mean?"</td><td>Glossary page, or hover any ⓘ icon</td></tr>
+<tr><td>"Show me the paper's results"</td><td>PDF tab → Tables I–III, Fig. 8</td></tr>
+<tr><td>"Show me the code"</td><td>GitHub tab → section 12 above</td></tr>
+</tbody></table></div>
+</section>
+
+<!-- ============================================================ -->
 <section id="rescue">
-<h2>11 · If something breaks</h2>
+<h2>14 · If something breaks</h2>
 <div class="tablewrap"><table>
 <thead><tr><th>What you see</th><th>Do this</th><th>Say</th></tr></thead>
 <tbody>
