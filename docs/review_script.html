@@ -273,12 +273,13 @@ details[open] summary { margin-bottom: 8px; }
 </div>
 
 <h3>6.3 Nothing is pre-recorded</h3>
-<div class="do">Click <b>Playground</b>. Click the button <span class="k">Deeper pocket (6 → 12 mm)</span>. Point at the description changing to <b>40x30x12</b>.</div>
+<div class="do">Click <b>Playground</b>. Click <span class="k">Pocket depth 6 ↔ 12 mm</span>. Point at the green box: <b>Before: … 40x30x6</b>, and the new description <b>40x30x12</b>. Then click <span class="k">Add / remove a slot (new tool)</span>.</div>
 <div class="say">
-<p>"Finally, this proves nothing is pre-recorded. This is a small program I can edit. I just changed the pocket depth from 6 to 12 millimetres; it re-ran the whole pipeline, and the part and its description updated.</p>
+<p>"Finally, this proves nothing is pre-recorded. This is a small program I can edit. I just changed the pocket depth from 6 to 12 millimetres; it re-ran the whole pipeline, and the box shows the part before and after. Now I'll add a slot with a new tool, and it appears in the 3D part and in the description.</p>
 <p><b>Sir, would you like to give me a value to change?</b>"</p>
 </div>
-<div class="do">If he gives a number: in the editor find <code>G1 Z-6 F120</code> (or whatever he points at), change the number, click <span class="k">▶ Run</span>. Or click <span class="k">Add a 5th hole</span>.</div>
+<div class="do">If he gives a number: in the editor find <code>G1 Z-12 F120</code> (the pocket depth) or <code>G98 G83 Z-15</code> (hole depth), change the number, click <span class="k">▶ Run</span>. Every quick-edit button toggles back; <span class="k">Reset</span> restores the original program.</div>
+<p class="tip">Optional: <span class="k">Hide / show tool comment</span> removes T2's size. The tool table then says "inferred from step-over" with the same 10 mm and the same part. That's a nice proof of the inference.</p>
 </section>
 
 <!-- ============================================================ -->

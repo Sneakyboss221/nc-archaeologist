@@ -128,12 +128,31 @@ async function renderDialects(ctx, part) {
 }
 
 /* ============================================================ PLAYGROUND */
+// Each quick edit toggles one change on the starter program and returns
+// { text, note } (or null when the program no longer has the line it edits).
+const SLOT = "(--- 4. SLOT: 8 MM END MILL ---)\nT4 M06 (T4 D8 FLAT ENDMILL)\nS7000 M03\nG0 X-26 Y-27 Z5\nG1 Z-4 F100\nG1 X26 F500\nG0 Z5\n\n";
 const EDITS = [
-  ["Deeper pocket (6 → 12 mm)", (t) => t.replace("G1 Z-6 F120", "G1 Z-12 F120")],
-  ["Add a 5th hole", (t) => t.replace("X-40\nG80", "X-40\nX0 Y28\nG80")],
-  ["Bigger drill (8.5 → 12 mm)", (t) => t.replace("T3 D8.5 DRILL", "T3 D12 DRILL")],
-  ["Remove tool comment (forces inference)", (t) => t.replace(" (T2 D10 FLAT ENDMILL)", "")],
-  ["Switch to incremental (G91) ✗ breaks it", (t) => t.replace("G0 X-15 Y-10 Z5\nG1 Z-6 F120\n", "G0 X-15 Y-10 Z5\nG1 Z-6 F120\nG91\n")],
+  ["Pocket depth 6 ↔ 12 mm", (t) => {
+    const m = t.match(/(T2 M06[\s\S]*?\nG1 Z-)(\d+(?:\.\d+)?)/);
+    if (!m) return null;
+    const to = +m[2] === 6 ? 12 : 6;
+    return { text: t.replace(m[0], m[1] + to), note: `pocket depth ${m[2]} → ${to} mm` };
+  }],
+  ["Add / remove 5th hole", (t) => t.includes("\nX0 Y28\n")
+    ? { text: t.replace("\nX0 Y28\n", "\n"), note: "removed the 5th hole" }
+    : t.includes("X-40\nG80") ? { text: t.replace("X-40\nG80", "X-40\nX0 Y28\nG80"), note: "added a 5th hole at X0 Y28" } : null],
+  ["Drill 8.5 ↔ 12 mm", (t) => {
+    const m = t.match(/T3 D([\d.]+) DRILL/);
+    if (!m) return null;
+    const to = m[1] === "8.5" ? "12" : "8.5";
+    return { text: t.replace(m[0], `T3 D${to} DRILL`), note: `drill diameter ${m[1]} → ${to} mm` };
+  }],
+  ["Add / remove a slot (new tool)", (t) => t.includes(SLOT)
+    ? { text: t.replace(SLOT, ""), note: "removed the slot" }
+    : t.includes("\nM05") ? { text: t.replace("\nM05", "\n" + SLOT + "M05"), note: "added an 8 mm slot with a new tool T4" } : null],
+  ["Hide / show tool comment (forces inference)", (t) => t.includes("T2 M06 (T2 D10 FLAT ENDMILL)")
+    ? { text: t.replace("T2 M06 (T2 D10 FLAT ENDMILL)", "T2 M06"), note: "removed T2's size comment: its diameter must now be inferred from the zig-zag spacing" }
+    : t.includes("T2 M06\n") ? { text: t.replace("T2 M06\n", "T2 M06 (T2 D10 FLAT ENDMILL)\n"), note: "restored T2's size comment" } : null],
 ];
 
 async function initPlayground(ctx) {
@@ -152,7 +171,8 @@ async function initPlayground(ctx) {
   const t = await api("/api/playground_template");
   const box = $("#pg-text");
   box.value = t.text;
-  const run = async () => {
+  let lastDesc = null, lastSig = null;
+  const run = async (note) => {
     $("#pg-run").disabled = true;
     $("#pg-out").innerHTML = `<p class="empty">Analysing…</p>`;
     try {
@@ -160,8 +180,19 @@ async function initPlayground(ctx) {
       const p = r.program;
       viewer.setProgram(p);
       const fam = ctx.state.index.families.find((f) => f.id === p.family);
-      $("#pg-out").innerHTML = `<div class="desc2">${esc(p.description)}</div>
+      // compare features (type, size, depth) so depth-only edits are visible too
+      const sig = p.features.map((f) => `${f.type}|${f.diameter ?? f.length.toFixed(0) + "x" + f.width.toFixed(0)}|${f.max_depth.toFixed(1)}`).join(";");
+      const depthNote = lastSig && lastSig !== sig && lastDesc === p.description ? "<br>Feature sizes or depths changed: see the feature table." : "";
+      const changed = typeof note === "string"
+        ? `<div class="banner" style="margin-bottom:10px">Edit: <b>${esc(note)}</b>${lastDesc && lastDesc !== p.description ? `<br>Before: ${esc(lastDesc)}` : depthNote || (lastDesc ? "<br>Recovered part unchanged." : "")}</div>` : "";
+      lastDesc = p.description;
+      lastSig = sig;
+      const tools = Object.entries(p.tools).map(([k, v]) => `<tr><td>T${k}</td><td class="num">${+(+v.diameter).toFixed(2)}</td><td>${esc(v.kind)}</td><td>${v.source === "comment" ? "from comment" : v.source === "inferred" ? "<b>inferred from step-over</b>" : "default (unknown)"}</td></tr>`).join("");
+      $("#pg-out").innerHTML = `${changed}<div class="desc2">${esc(p.description)}</div>
         ${p.warnings.length ? `<div class="warn" style="border-radius:8px;margin-bottom:8px">⚠ ${p.warnings.map(esc).join("<br>⚠ ")}</div>` : ""}
+        <table style="margin-bottom:8px"><thead><tr><th>Feature</th><th>X</th><th>Y</th><th>Size mm</th><th>Depth mm</th></tr></thead><tbody>${
+          p.features.map((f) => `<tr><td>${esc(f.type.replace("_", " "))}</td><td class="num">${f.x.toFixed(1)}</td><td class="num">${f.y.toFixed(1)}</td><td class="num">${f.diameter ? "Ø" + f.diameter : `${f.length.toFixed(0)} × ${f.width.toFixed(0)}`}</td><td class="num">${f.max_depth.toFixed(1)}</td></tr>`).join("")}</tbody></table>
+        <table style="margin-bottom:8px"><thead><tr><th>Tool</th><th>Ø mm</th><th>Type</th><th>Size from</th></tr></thead><tbody>${tools}</tbody></table>
         <ol class="stages" style="padding:0">${p.stages.map((s) => `<li class="ok"><span class="ico">✓</span><span class="nm">${esc(s.name)}</span><span class="ms">${s.ms < 1 ? "<1" : s.ms.toFixed(0)} ms</span><span class="dt">${esc(s.detail)}</span></li>`).join("")}</ol>
         <p>Closest family: <span class="swatch" style="background:${famColor(p.family)}"></span> <b>F${p.family + 1} · ${esc(fam?.label || "")}</b> · total ${p.runtime_s.toFixed(2)} s
         <button class="btn sm" id="pg-open">Open in explorer →</button></p>`;
@@ -170,13 +201,13 @@ async function initPlayground(ctx) {
       $("#pg-out").innerHTML = `<div class="warn" style="border-radius:8px">Could not analyse: ${esc(e.message)}</div>`;
     } finally { $("#pg-run").disabled = false; }
   };
-  $("#pg-run").onclick = run;
-  $("#pg-reset").onclick = () => { box.value = t.text; run(); };
+  $("#pg-run").onclick = () => run("your changes to the program");
+  $("#pg-reset").onclick = () => { box.value = t.text; lastDesc = lastSig = null; run(); };
   el.querySelectorAll("[data-edit]").forEach((b) => b.onclick = () => {
-    const nv = EDITS[+b.dataset.edit][1](box.value);
-    if (nv === box.value) { b.textContent = "already applied"; return; }
-    box.value = nv;
-    run();
+    const res = EDITS[+b.dataset.edit][1](box.value);
+    if (!res) { run("this quick edit needs the original lines; press Reset first"); return; }
+    box.value = res.text;
+    run(res.note);
   });
   ctx.playgroundRun = run;
   run();

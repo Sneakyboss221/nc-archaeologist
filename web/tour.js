@@ -45,7 +45,7 @@ function steps(ctx) {
     { page: "playground", target: "#page-playground .pg", run: async () => {
         await wait(1200); document.querySelector('[data-edit="0"]')?.click(); await wait(1500); },
       say: "Nothing here is pre-recorded. In the <b>playground</b> I just changed the pocket depth from 6 to 12 mm and ran it again: the part and its description update live. You can try your own program too.",
-      notes: "Other quick edits: add a hole, change the drill size, or remove a tool comment to force inference. The last edit (G91) shows a wrong result on purpose: an incremental mode switch the program wasn't written for." },
+      notes: "Other quick edits: add a 5th hole, change the drill size, add a slot with a new tool, or hide a tool comment to force inference. Each edit shows what changed and the part description before and after; every button toggles back." },
     { page: "results", target: "#page-results .kpis", run: async () => wait(1200),
       say: "Results on <b>600 programs it was never tuned on</b>: part families found with ARI <b>0.80</b>, against <b>0.07</b> for text comparison; 94% top-5 accuracy; and parts rebuilt almost exactly (IoU 0.999) when tools are named.",
       notes: "ARI: 1 = perfect, 0 = random. Developed on 600 programs (seed 7), measured once on a separate 600 (seed 11). Honest limits: the benchmark is synthetic, recovery drops when tool sizes are unknown, and only 3-axis 2.5D parts are handled." },
