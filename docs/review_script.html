@@ -1,0 +1,466 @@
+<title>NC-Archaeologist Review Script</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+/* Layout: a reading column for the spoken script, with a sticky section index on wide screens. */
+:root {
+  --bg: #f6f7f9; --panel: #ffffff; --ink: #14181d; --muted: #5b6672; --line: #dfe3e8;
+  --say: #14181d; --do-bg: #fff4e3; --do-ink: #6b3d00; --tip: #2f5f8a; --accent: #c46a00;
+  --warn-bg: #fdecec; --warn-ink: #8a1f1f;
+  --read: "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
+  --size: 19px;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0f1216; --panel: #161b21; --ink: #e6ebf0; --muted: #8b97a3; --line: #27303a;
+  --say: #f1f4f7; --do-bg: #2a1f10; --do-ink: #ffcc85; --tip: #8cc4f5; --accent: #f2a33a;
+  --warn-bg: #2c1515; --warn-ink: #ffb3b3; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #0f1216; --panel: #161b21; --ink: #e6ebf0; --muted: #8b97a3; --line: #27303a;
+  --say: #f1f4f7; --do-bg: #2a1f10; --do-ink: #ffcc85; --tip: #8cc4f5; --accent: #f2a33a;
+  --warn-bg: #2c1515; --warn-ink: #ffb3b3; color-scheme: dark }
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 72px; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+body { background: var(--bg); color: var(--ink); font: var(--size)/1.6 var(--read); margin: 0;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--panel); }
+
+.bar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--panel); border-bottom: 1px solid var(--line);
+  margin: 0 calc(-1 * max(16px, env(safe-area-inset-left, 0px))); padding: 10px max(16px, env(safe-area-inset-left, 0px));
+  display: flex; gap: 12px; align-items: center; flex-wrap: wrap; font-size: 15px; }
+.bar b { font-size: 16px; }
+.bar .spacer { flex: 1; }
+.bar button { font: 600 14px var(--mono); color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 5px 10px; cursor: pointer; }
+.bar button:focus-visible, a:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.clock { font: 600 15px var(--mono); font-variant-numeric: tabular-nums; color: var(--accent); }
+
+.wrap { display: grid; grid-template-columns: 230px minmax(0, 1fr); gap: 40px; max-width: 1180px; margin: 0 auto; padding-block: 28px 120px; }
+nav.toc { position: sticky; top: 70px; align-self: start; font-size: 14px; line-height: 1.35; }
+nav.toc a { display: grid; grid-template-columns: 1fr auto; gap: 8px; color: var(--muted); text-decoration: none; padding: 6px 8px; border-radius: 6px; }
+nav.toc a:hover { background: var(--panel); color: var(--ink); }
+nav.toc a span:last-child { font: 12px var(--mono); }
+main { min-width: 0; max-width: 46em; }
+
+h1 { font-size: 1.9em; line-height: 1.15; margin: 0 0 6px; text-wrap: balance; }
+.sub { color: var(--muted); margin: 0 0 22px; }
+section { border-top: 1px solid var(--line); padding-top: 26px; margin-top: 34px; }
+h2 { font-size: 1.35em; margin: 0 0 4px; display: flex; gap: 12px; align-items: baseline; flex-wrap: wrap; text-wrap: balance; }
+h2 .t { font: 600 0.62em var(--mono); color: var(--accent); letter-spacing: .04em; }
+h3 { font-size: 1.05em; margin: 26px 0 8px; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; font-weight: 700; }
+
+.say { color: var(--say); margin: 14px 0; }
+.say::before { content: "SAY"; display: block; font: 600 11px var(--mono); letter-spacing: .14em; color: var(--muted); margin-bottom: 2px; }
+.say p { margin: 0 0 10px; }
+.do { background: var(--do-bg); color: var(--do-ink); border-radius: 8px; padding: 10px 14px; margin: 14px 0; font-size: .92em; }
+.do::before { content: "DO"; display: block; font: 600 11px var(--mono); letter-spacing: .14em; margin-bottom: 2px; opacity: .8; }
+.do ol, .do ul { margin: 0; padding-left: 1.2em; }
+.tip { color: var(--tip); font-size: .86em; margin: 10px 0; }
+.tip::before { content: "Pointer · "; font-weight: 700; }
+.warn { background: var(--warn-bg); color: var(--warn-ink); border-radius: 8px; padding: 10px 14px; font-size: .9em; margin: 14px 0; }
+kbd, .k { font: 600 .82em var(--mono); background: var(--panel); color: var(--ink); border: 1px solid var(--line); border-radius: 5px; padding: 1px 6px; white-space: nowrap; }
+code { font: .85em var(--mono); background: var(--panel); border: 1px solid var(--line); border-radius: 4px; padding: 1px 5px; overflow-wrap: anywhere; }
+.cmd { display: flex; gap: 8px; align-items: stretch; margin: 6px 0; }
+.cmd code { flex: 1; display: block; padding: 8px 10px; font-size: .78em; overflow-x: auto; white-space: nowrap; }
+.cmd button { font: 600 12px var(--mono); border: 1px solid var(--line); border-radius: 6px; background: var(--panel); color: var(--ink); cursor: pointer; padding: 0 10px; }
+.check { list-style: none; padding: 0; margin: 10px 0; }
+.check li { display: flex; gap: 10px; align-items: flex-start; padding: 6px 0; border-bottom: 1px dashed var(--line); font-size: .92em; }
+.check input { width: 20px; height: 20px; margin-top: 4px; accent-color: var(--accent); flex: none; }
+.check li.done label { color: var(--muted); text-decoration: line-through; }
+.num { font-variant-numeric: tabular-nums; font-weight: 700; }
+table { border-collapse: collapse; width: 100%; font-size: .85em; }
+.tablewrap { overflow-x: auto; margin: 10px 0; }
+th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { color: var(--muted); font-weight: 700; font-size: .85em; text-transform: uppercase; letter-spacing: .06em; }
+details { border: 1px solid var(--line); border-radius: 8px; padding: 10px 14px; margin: 10px 0; background: var(--panel); }
+details summary { cursor: pointer; font-weight: 700; }
+details[open] summary { margin-bottom: 8px; }
+.qa p { margin: 6px 0; }
+@media (max-width: 860px) { .wrap { grid-template-columns: 1fr; } nav.toc { display: none; } }
+</style>
+
+<div class="bar">
+  <b>Review script</b><span class="clock" id="clock" title="Elapsed since you pressed Start">00:00</span>
+  <button id="startbtn" type="button">Start timer</button>
+  <span class="spacer"></span>
+  <button id="smaller" type="button" aria-label="Smaller text">A−</button>
+  <button id="bigger" type="button" aria-label="Bigger text">A+</button>
+  <button id="themebtn" type="button">Theme</button>
+</div>
+
+<div class="wrap">
+<nav class="toc" aria-label="Sections">
+  <a href="#prep"><span>0 · Before the call</span><span>−60m</span></a>
+  <a href="#open"><span>1 · Opening</span><span>1m</span></a>
+  <a href="#problem"><span>2 · Basics &amp; problem</span><span>3m</span></a>
+  <a href="#idea"><span>3 · Idea &amp; novelty</span><span>2m</span></a>
+  <a href="#demo1"><span>4 · Demo: one program</span><span>6m</span></a>
+  <a href="#how"><span>5 · How it works</span><span>3m</span></a>
+  <a href="#demo2"><span>6 · Demo: the big claims</span><span>6m</span></a>
+  <a href="#results"><span>7 · Results</span><span>2m</span></a>
+  <a href="#paper"><span>8 · The paper</span><span>3m</span></a>
+  <a href="#close"><span>9 · Limits &amp; closing</span><span>1m</span></a>
+  <a href="#qa"><span>10 · Q&amp;A answers</span><span></span></a>
+  <a href="#rescue"><span>11 · If something breaks</span><span></span></a>
+  <a href="#short"><span>Short version (10 min)</span><span></span></a>
+</nav>
+
+<main>
+<h1>NC-Archaeologist: online review</h1>
+<p class="sub">Google Meet · laptop 1 shares the screen · read this on laptop 2. <b>Orange boxes</b> are clicks; plain text is what you say. Total ≈ 27 minutes plus questions.</p>
+
+<!-- ============================================================ -->
+<section id="prep">
+<h2>0 · Before the call <span class="t">START 60 MIN EARLY</span></h2>
+
+<h3>Laptop 1 (the one you share)</h3>
+<ul class="check" id="checks">
+  <li><input type="checkbox" id="c1"><label for="c1">Charger plugged in. Close every other app (WhatsApp, Discord, games, downloads).</label></li>
+  <li><input type="checkbox" id="c2"><label for="c2">Turn on <b>Do not disturb</b>: Windows Settings → System → Notifications → Do not disturb ON. No pop-ups during screen share.</label></li>
+  <li><input type="checkbox" id="c3"><label for="c3">Open PowerShell and run the two commands below. Leave the window open (minimise it).</label></li>
+  <li><input type="checkbox" id="c4"><label for="c4">In Chrome, open <b>http://127.0.0.1:8765</b> (type <code>http://</code>, not https). Wait for 600 dots on the map.</label></li>
+  <li><input type="checkbox" id="c5"><label for="c5">Warm-up: click <b>Same part ×4</b> (wait for the four parts), then <b>Results</b>, then <b>Explorer</b>. Then press <kbd>F5</kbd> to reload so the map is clean.</label></li>
+  <li><input type="checkbox" id="c6"><label for="c6">Open the paper in a second Chrome tab: drag <code>Downloads\NC-Archaeologist\nc-archaeologist\paper\main.pdf</code> onto Chrome. Keep only these 2 tabs open.</label></li>
+  <li><input type="checkbox" id="c7"><label for="c7">Zoom: on a small laptop screen press <kbd>Ctrl</kbd> <kbd>−</kbd> once (90%) on the dashboard tab so everything fits.</label></li>
+  <li><input type="checkbox" id="c8"><label for="c8">Join Meet from <b>laptop 1 only</b>. Test the mic. Camera at eye level.</label></li>
+  <li><input type="checkbox" id="c9"><label for="c9">Laptop 2: open this page, brightness up, placed right beside laptop 1's camera so your eyes stay near the camera. <b>Do not join Meet on laptop 2</b> (it causes echo).</label></li>
+  <li><input type="checkbox" id="c10"><label for="c10">Water nearby. Phone on silent and face down.</label></li>
+</ul>
+
+<p><b>Commands</b> (PowerShell on laptop 1):</p>
+<div class="cmd"><code id="cmd1">cd "C:\Users\Sneak\Downloads\NC-Archaeologist\nc-archaeologist"</code><button type="button" data-copy="cmd1">Copy</button></div>
+<div class="cmd"><code id="cmd2">C:\Users\Sneak\ncarch-venv\Scripts\python -m uvicorn ncarch.api:app --port 8765</code><button type="button" data-copy="cmd2">Copy</button></div>
+<p class="tip">Ready when PowerShell says <code>Uvicorn running on http://127.0.0.1:8765</code>. If it says "address already in use", an old server is running: close the old window, or use <code>--port 8766</code> and open :8766.</p>
+
+<h3>When the professor joins</h3>
+<div class="do"><ol>
+  <li>Camera on, not sharing yet. Do the opening (section 1) face to face.</li>
+  <li>Then in Meet: <b>Present now → Your entire screen</b> → pick laptop 1's screen. <i>Entire screen</i>, not "a tab", so switching between the dashboard and the PDF works.</li>
+  <li>Click the Chrome dashboard tab. Press <kbd>F11</kbd> for full screen if you like (F11 again to exit).</li>
+</ol></div>
+<p class="tip">Speak slowly. After every big number, pause for one breath. If he interrupts, answer, then say "Shall I continue with the demo?". This page has a timer at the top: press Start when you begin talking.</p>
+</section>
+
+<!-- ============================================================ -->
+<section id="open">
+<h2>1 · Opening <span class="t">1 MIN · CAMERA, NOT SHARING</span></h2>
+<div class="say">
+<p>"Good evening sir. Thank you for taking the time for this review.</p>
+<p>I'm Sanjit Patibanda. My project for Computer Integrated Manufacturing is called <b>NC-Archaeologist</b>.</p>
+<p>In one line: it takes old CNC programs, just the G-code with no CAD drawing, and works out <b>what part each program makes</b>, <b>how it is made</b>, and <b>which parts belong to the same family</b>.</p>
+<p>I've built it as working software that I'll demonstrate live, I tested it on real open-source CNC programs, and I've written it up as an IEEE-format paper.</p>
+<p>With your permission, I'll share my screen."</p>
+</div>
+<div class="do">Present now → Your entire screen → the dashboard tab is showing.</div>
+</section>
+
+<!-- ============================================================ -->
+<section id="problem">
+<h2>2 · Basics and the problem <span class="t">3 MIN · EXPLORER PAGE</span></h2>
+<div class="say">
+<p>"Let me quickly set the context.</p>
+<p>A CNC milling machine is controlled by a program written in <b>G-code</b>, the ISO 6983 language. Each line is a command. For example, <code>G01 X10 Y5 F300</code> means: cut in a straight line to X 10, Y 5, at 300 millimetres per minute. <code>G00</code> is a fast move, <code>G02</code> and <code>G03</code> are arcs, <code>G83</code> is a peck-drilling cycle.</p>
+<p>In CIM, information is supposed to flow from <b>CAD</b> to <b>process planning</b> to <b>CAM</b> to the <b>CNC machine</b>. But in real factories that chain breaks. CAD systems get replaced, suppliers change, programmers retire. What survives on the shop floor is only the last link: the G-code. A shop can have thousands of programs named like <i>O1234</i>, and nobody knows what each one makes."</p>
+</div>
+<div class="do">Point at the stats bar at the top: <span class="k">600 programs in archive</span>.</div>
+<div class="say">
+<p>"This archive, for example, has 600 programs with no drawings and no labels.</p>
+<p>That blocks three things CIM is supposed to give us:</p>
+<p>One, <b>reuse</b>: when a new order comes in, finding out we already made a similar part, so we adapt a proven program instead of programming from scratch.</p>
+<p>Two, <b>Group Technology</b>: grouping parts into families for machine cells and standard tooling, which is Module 6 of our syllabus.</p>
+<p>And three, <b>digital transformation</b>: turning an unreadable archive into searchable data.</p>
+<p>The obvious idea, comparing the program text, doesn't work. The same part can be written in millimetres or inches, absolute or incremental, with arcs or hundreds of tiny lines, clamped at any angle on the table, for a Fanuc or a Haas controller. Two programs for the same part can share almost no text."</p>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section id="idea">
+<h2>3 · The idea and why it's novel <span class="t">2 MIN</span></h2>
+<div class="say">
+<p>"So my idea is to treat each program as an <b>executable description of geometry</b>. Instead of reading the text, the system <b>runs</b> the program in a simulation, rebuilds the part that would come out of the machine, and then compares programs by <b>what they make</b>, not how they're written.</p>
+<p>On novelty: rebuilding geometry from G-code has been studied, but only for <b>3D printing</b>, for example Tsoutsos and colleagues in 2017, and Kiński and Sobieski in 2020. In printing, the toolpath <i>is</i> the part. In milling it's the opposite: the part is what's <b>left</b> after a rotating cutter removes material, so you have to simulate the cutter itself.</p>
+<p>And Group Technology classification, like the Opitz code or production flow analysis, has always needed a CAD model, a drawing, or route sheets. To the best of my knowledge, this is the first approach that forms Group Technology part families <b>directly from CNC programs</b>.</p>
+<p>It touches almost every module of the course: CNC and part programming, real-time CAM simulation, CAPP, Group Technology, and Big Data in manufacturing. Let me show you."</p>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section id="demo1">
+<h2>4 · Demo: one program, start to finish <span class="t">6 MIN</span></h2>
+
+<h3>4.1 The archive map</h3>
+<div class="do">Move the mouse slowly over a few dots on the <b>Archive map</b> (each shows a program name and description).</div>
+<div class="say">
+<p>"Each dot is one program. Programs that make similar parts end up close together. The colours are the part families the system <b>discovered by itself</b>; it was never told the answers. The small crosses are programs it flagged as unusual."</p>
+</div>
+<div class="do">In <b>Discovered part families</b>, click <span class="k">F6 · hole + circular pocket</span> (highlights it), then click it again to clear.</div>
+<div class="say"><p>"It also names each family automatically from what its members share. This one is flanges: a centre bore with a bolt circle."</p></div>
+
+<h3>4.2 Analyse a program live</h3>
+<div class="do">Top right: <b>Run a sample…</b> → <span class="k">Flange, Fanuc dialect with N-numbers and G83 drilling</span>.</div>
+<div class="say">
+<p>"I'll run one program through it live. You can see each stage: it <b>parses</b> the G-code, <b>identifies the cutters</b>, <b>simulates material removal</b>, builds the <b>process sheet</b>, <b>recognises features</b>, and computes a <b>fingerprint</b>. The times shown are real; the whole thing takes well under a second."</p>
+</div>
+
+<h3>4.3 The rebuilt part</h3>
+<div class="do">Drag on the 3D part to rotate it; scroll to zoom. Then click <span class="k">Part + toolpath</span>.</div>
+<div class="say">
+<p>"This is the part rebuilt purely from the G-code: a flange with a centre bore, a bolt circle and an outer profile. The coloured lines are the actual tool movements from the program, one colour per tool."</p>
+</div>
+<div class="do">Click <span class="k">Part</span> again, choose <span class="k">4×</span>, then press <span class="k">▶ Simulate machining</span>. Let it run about 15 seconds; press <span class="k">16×</span> to finish.</div>
+<div class="say">
+<p>"Now it replays the machining. The block is modelled as a grid of tiny columns, each a quarter of a millimetre wide. This is called a <b>dexel</b> or height-map model. For every cutting move, every column under the cutter is pushed down to the cutter's tip, with the right tip shape: flat end mill, ball end, or a 118-degree drill point.</p>
+<p>The bar underneath shows the exact G-code line being executed and what it means. When the program ends, what's left is the part. That's the digital-twin part of the project, real-time CAM simulation from Module 4."</p>
+</div>
+
+<h3>4.4 Process sheet (CAPP backwards)</h3>
+<div class="do">Show the <b>Process sheet</b> tab. Then click any row; it jumps to the G-code with those lines highlighted.</div>
+<div class="say">
+<p>"While simulating, it also recovers the <b>process plan</b>: which tool, which operation, depth, feed, spindle speed and time. That's CAPP done backwards.</p>
+<p>It names each operation from <b>what that tool removed</b>: a thin layer over the whole top is facing, a ring around the part is profiling, plunges only is drilling."</p>
+</div>
+<div class="do">On the G-code tab, hover over a line with <span class="k">G83</span> (a tooltip appears).</div>
+<div class="say"><p>"Every line can be explained. For example, this G83 is a peck-drilling cycle: it drills in steps and pulls out to clear chips."</p></div>
+
+<h3>4.5 Features and similar parts</h3>
+<div class="do">Click the <b>Features</b> tab.</div>
+<div class="say"><p>"These are the shapes recognised on the rebuilt part: holes, the bore, the outline, with position, size and depth. It also checks whether holes form a <b>bolt circle</b> and gives its pitch-circle diameter."</p></div>
+<div class="do">Click <b>Similar programs</b>, then <span class="k">Compare side by side</span> on the first card. Point at the two code listings. Close with ✕.</div>
+<div class="say"><p>"And this answers: <b>have we made something like this before?</b> These are the closest programs in the archive. Comparing two of them side by side: the code looks different, but the parts are the same kind."</p></div>
+</section>
+
+<!-- ============================================================ -->
+<section id="how">
+<h2>5 · How it works <span class="t">3 MIN · HOW IT WORKS PAGE</span></h2>
+<div class="do">Click <b>How it works</b> in the top menu. Scroll slowly as you talk; the right-hand boxes show live values for the flange you just ran.</div>
+<div class="say">
+<p>"Here's the full method in six steps, with live numbers from that program.</p>
+<p><b>Step 1, parsing.</b> A modal state machine following ISO 6983. It keeps track of units, absolute or incremental mode, the active tool and the motion mode. It turns arcs into short straight segments and expands drilling cycles. It also <b>executes parametric programs</b>: variables, expressions, loops, subroutines and polar coordinates. Anything it can't run faithfully, like cutter compensation, gives a <b>warning instead of a guess</b>.</p>
+<p><b>Step 2, cutter sizes.</b> If the program states a tool's size in a comment, it uses that. If not, it finds the zig-zag pattern and measures the gap between passes, the <b>step-over</b>, which is usually about half the cutter diameter.</p>
+<p><b>Step 3</b> is the simulation you just watched.</p>
+<p><b>Step 4</b>, the process sheet.</p>
+<p><b>Step 5, features</b>: the rebuilt part is sliced at each floor depth and each region is classified by shape, keeping features nested inside other features.</p>
+<p><b>Step 6, the fingerprint</b>: 75 numbers describing what the part <i>is</i>. These include shape statistics like <b>Hu moments</b>, which don't change when the part is rotated or moved, plus feature counts and the operation mix. Programs with similar fingerprints are grouped into families using Ward clustering, and a second method, HDBSCAN, flags unusual programs."</p>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section id="demo2">
+<h2>6 · Demo: the three big claims <span class="t">6 MIN</span></h2>
+
+<h3>6.1 Same part, four different programs</h3>
+<div class="do">Click <b>Same part ×4</b>. Point at the four code columns, then at the four parts below.</div>
+<div class="say">
+<p>"This is the key idea of the project. This is <b>one part written four completely different ways</b>: for a Fanuc controller, for a Haas, with no comments and arcs as tiny lines, and in inches with incremental moves. Each one is also clamped at a different angle.</p>
+<p>The text shares almost nothing, but the system rebuilds <b>the same part</b> from all four. The similarity table shows their fingerprints are about 90 percent alike, against near zero for a random program in the archive."</p>
+</div>
+
+<h3>6.2 Real programs, not my own data</h3>
+<div class="do">Go to <b>Explorer</b>. <b>Run a sample…</b> → <span class="k">REAL (LinuxCNC): 3D carving, 4,700 lines, parametric</span>. When it loads, rotate the part.</div>
+<div class="say">
+<p>"To make sure this isn't just working on my own generated data, I tested it on <b>real programs from LinuxCNC</b>, an open-source CNC controller project. This one is a 4,700-line 3D carving written entirely with variables and expressions.</p>
+<p>It executes all of it and rebuilds the carving. And notice the green banner: it says this part is <b>unlike anything in the archive</b>. Instead of forcing it into the wrong family, it flags it as a new part type, which is what you'd want in a real shop."</p>
+</div>
+<div class="do"><b>Run a sample…</b> → <span class="k">REAL (LinuxCNC): stepper-motor mount</span>. Point at the yellow warning box.</div>
+<div class="say">
+<p>"This is a stepper-motor mount written for a real workshop machine. It uses macro loops and three fixture stations. It rebuilds the outline, the bolt holes and the slots. And the yellow box shows something important: it tells you what it <b>couldn't</b> be sure about, here cutter compensation and the multiple fixture stations, instead of hiding it."</p>
+</div>
+
+<h3>6.3 Nothing is pre-recorded</h3>
+<div class="do">Click <b>Playground</b>. Click the button <span class="k">Deeper pocket (6 → 12 mm)</span>. Point at the description changing to <b>40x30x12</b>.</div>
+<div class="say">
+<p>"Finally, this proves nothing is pre-recorded. This is a small program I can edit. I just changed the pocket depth from 6 to 12 millimetres; it re-ran the whole pipeline, and the part and its description updated.</p>
+<p><b>Sir, would you like to give me a value to change?</b>"</p>
+</div>
+<div class="do">If he gives a number: in the editor find <code>G1 Z-6 F120</code> (or whatever he points at), change the number, click <span class="k">▶ Run</span>. Or click <span class="k">Add a 5th hole</span>.</div>
+</section>
+
+<!-- ============================================================ -->
+<section id="results">
+<h2>7 · Results <span class="t">2 MIN · RESULTS PAGE</span></h2>
+<div class="do">Click <b>Results</b>. Point at each number as you say it.</div>
+<div class="say">
+<p>"For evaluation, there's no public dataset of CNC programs with part-family labels, so I built a benchmark of 1,200 programs: 8 part families, written in 4 controller styles, with random sizes, rotation and position. I developed everything on 600 of them and measured <b>once</b> on a separate 600 the system was never tuned on.</p>
+<p>Part families are recovered with an adjusted Rand index of <b>0.80</b>. For comparison, clustering the G-code text scores <b>0.07</b>, which is basically random. The text method actually groups programs by writing style instead.</p>
+<p>The 'find similar' search is right <b>94 percent</b> of the time in its top five.</p>
+<p>Parts are rebuilt almost exactly, an overlap of <b>0.999</b>, when the program names its tools.</p>
+<p>And not a single program crashed the system."</p>
+</div>
+<div class="do">Point at the ablation chart, then the honest-limitations box at the bottom.</div>
+<div class="say"><p>"The ablation shows geometry alone and process alone each do well, and <b>combining both is best</b>. And I've listed the limitations openly; I'll come back to them at the end."</p></div>
+</section>
+
+<!-- ============================================================ -->
+<section id="paper">
+<h2>8 · The paper <span class="t">3 MIN · PDF TAB</span></h2>
+<div class="do">Switch to the PDF tab (<kbd>Ctrl</kbd> <kbd>Tab</kbd>). Scroll as you go.</div>
+<div class="say">
+<p>"I've written this up in IEEE conference format.</p>
+<p>The <b>abstract</b> summarises the problem, the method and the main numbers.</p>
+<p>The <b>introduction</b> explains the legacy-archive problem and lists five contributions.</p>
+<p><b>Related work</b> covers G-code reverse engineering for 3D printing, Group Technology classification, feature recognition and CAD retrieval, and recent work on language models that generate G-code.</p>
+<p>The <b>method</b> section has the pipeline in Figure 1 and the simulation equation, and Figure 2 is the dashboard you just saw.</p>
+<p>The <b>results</b>: Table 1 is part recovery, Table 2 feature recognition, Table 3 family discovery against the baselines. Figure 4 is the same part in four dialects.</p>
+<p>Section V-G is the test on <b>real LinuxCNC programs</b>: 13 of 15 analysed, the other two aren't part programs, with Figure 8 showing the recovered parts.</p>
+<p>All the numbers in the paper are generated directly from the experiment results, so they're reproducible. The paper ends with limitations, future work and 18 references."</p>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section id="close">
+<h2>9 · Limitations and closing <span class="t">1 MIN</span></h2>
+<div class="say">
+<p>"To be clear about the limits:</p>
+<p>The main benchmark is <b>synthetic</b>, because no labelled dataset exists. The real LinuxCNC programs show it works on real files, but they don't have family labels, so the next step is validating on a real shop's archive.</p>
+<p>It handles 3-axis parts; 5-axis and undercuts would need a tri-dexel model.</p>
+<p>And when a program never states its tool sizes, accuracy drops, which is why it always flags it.</p>
+<p>For future work: exporting the recognised features to <b>STEP-NC</b>, ISO 14649, so legacy parts can re-enter a modern CAD-CAPP-CAM chain, and linking the families to cell formation.</p>
+<p>In summary: a legacy CNC program contains enough information to recover its <b>part</b>, its <b>process plan</b> and its <b>family</b>. By comparing programs on what they make rather than how they're written, it works across controllers and set-ups, where text comparison fails.</p>
+<p>Thank you, sir. I'm happy to take any questions, or show any part in more detail."</p>
+</div>
+<div class="do">Stay on the <b>How it works</b> page while he asks questions; it answers most "how" questions visually.</div>
+</section>
+
+<!-- ============================================================ -->
+<section id="qa" class="qa">
+<h2>10 · Answers to likely questions</h2>
+<p class="tip">Answer in one or two sentences, then stop. If he wants more, he'll ask.</p>
+
+<details><summary>Is the data real or fake?</summary>
+<p>"The main benchmark is synthetic, deliberately, because no public dataset of CNC programs with family labels exists, and synthetic data gives exact ground truth. I made it hard on purpose with four dialects, random rotation and missing tool comments, and I tuned on one set and tested once on another. I also ran 15 real, unmodified programs from the LinuxCNC project. For example, its polar-coordinate file should drill 26 holes and we found 26; a 3-inch bolt circle was measured as 76 millimetres."</p></details>
+
+<details><summary>Did you build this yourself?</summary>
+<p>Say what's true. A safe, honest version: "I designed the approach and the experiments, and I built it in Python using standard libraries like NumPy and scikit-learn, with AI coding assistance during development. I can walk you through any part of the code or method."</p>
+<p class="tip">Being open about tools is far safer than being caught out, and the follow-up questions test understanding, not typing.</p></details>
+
+<details><summary>Why not just compare the G-code text?</summary>
+<p>"Because the same part can be written in completely different ways. In my results, text clustering scored 0.07 for families but 0.61 for writing style. It learns the dialect, not the part."</p></details>
+
+<details><summary>Why do you need to simulate? Can't you read the coordinates?</summary>
+<p>"The coordinates are the centre of a round cutter, not the part. The part is what's left after a cutter of a certain diameter and shape sweeps along that path, so you have to simulate the cutter to know what was removed."</p></details>
+
+<details><summary>What is a dexel / height map?</summary>
+<p>"The block is a grid of small columns, 0.25 mm wide, each storing its height. Each cutting move lowers the columns under the cutter to the cutter's tip plus its shape. It's 2.5D: one height per point, which is enough for 3-axis parts."</p></details>
+
+<details><summary>How do you find the tool size if it isn't written?</summary>
+<p>"From the zig-zag pattern: at least three parallel back-and-forth passes. The gap between them is the step-over, usually about half the cutter diameter. It covers 55 percent of tools in comment-free programs, 82 percent of those within one standard size. Drills can't be inferred, so a default is used and flagged."</p></details>
+
+<details><summary>What is the fingerprint? Why Hu moments?</summary>
+<p>"75 numbers: 46 describe shape, such as the depth distribution, seven Hu moments, a radial profile and feature counts, and 29 describe the process, such as the share of time per operation and the number of tools. Hu moments are shape descriptors that stay the same under rotation, translation and scale, so a part clamped at any angle gets the same fingerprint."</p></details>
+
+<details><summary>What does ARI 0.80 mean?</summary>
+<p>"Adjusted Rand Index: how well the discovered groups match the true families. 1 is perfect, 0 is random. 0.80 is strong; text comparison got 0.07."</p></details>
+
+<details><summary>How are the families formed?</summary>
+<p>"Ward hierarchical clustering, which repeatedly merges the two groups that add the least spread. When the number of families isn't known, the silhouette score picks it: it chose 9, and the true number is 8. HDBSCAN is also used to flag programs that don't fit anywhere."</p></details>
+
+<details><summary>What about cutter compensation, G41 / G42?</summary>
+<p>"With compensation the program describes the part edge and the controller offsets by the tool radius, which isn't in the file. So it's flagged as approximate rather than guessed."</p></details>
+
+<details><summary>Can it handle macros or parametric programs?</summary>
+<p>"Yes. It executes variables, expressions, loops, if/else and subroutines, both LinuxCNC style and Fanuc Macro B, plus polar coordinates. The real 3D carving is written entirely with variables. Only subroutines stored in other files can't be executed, and those are flagged."</p></details>
+
+<details><summary>What about 5-axis or lathe programs?</summary>
+<p>"5-axis isn't supported: the height map can't represent undercuts; that's future work with a tri-dexel model. Lathe programs are detected and flagged as 'not milling'." Show it: Run a sample → lathe program.</p></details>
+
+<details><summary>How would a factory actually use this?</summary>
+<p>"Run it once over the whole program archive. Then you can search 'have we made this before?' when quoting, use the families to plan cells and standardise tooling, and use the recovered parts and process sheets as documentation for legacy parts."</p></details>
+
+<details><summary>Why not use AI or an LLM?</summary>
+<p>"LLMs can generate G-code but don't reliably understand its geometry. Even the GLLM paper notes G-code has no semantic description of shape. This approach is physical and deterministic: it simulates the cutter, so every result is explainable and checkable."</p></details>
+
+<details><summary>How does this connect to the syllabus?</summary>
+<p>"CNC and part programming, Modules 2 and 3. Real-time CAM simulation, Module 4. CAPP and STEP, Module 5. Group Technology and FMS, Module 6. Big Data and digital transformation, Module 7."</p></details>
+
+<details><summary>What was the hardest part?</summary>
+<p>"Knowing where the raw block was, because G-code never states the stock size. I estimate it from the facing pass, which usually overruns the block by about one cutter radius. Another was real files: they used variables and loops that my test data didn't have, so I extended the interpreter to execute them."</p></details>
+
+<details><summary>How fast is it? What tools did you use?</summary>
+<p>"About 1.7 seconds per program on a laptop, run in parallel. Python with NumPy, SciPy, scikit-image and scikit-learn; a FastAPI server; the dashboard uses Three.js for 3D and Plotly for charts; the paper is LaTeX in IEEE format."</p></details>
+
+<details><summary>What would you do next?</summary>
+<p>"Validate on a labelled archive from a real shop, resolve cutter compensation from tool tables, extend to 5-axis, and export STEP-NC features."</p></details>
+</section>
+
+<!-- ============================================================ -->
+<section id="rescue">
+<h2>11 · If something breaks</h2>
+<div class="tablewrap"><table>
+<thead><tr><th>What you see</th><th>Do this</th><th>Say</th></tr></thead>
+<tbody>
+<tr><td>Page blank or no 3D part</td><td>Check Wi-Fi, then <kbd>Ctrl</kbd> <kbd>Shift</kbd> <kbd>R</kbd>. The 3D and chart libraries load from the internet.</td><td>"One second, reloading."</td></tr>
+<tr><td>"This site can't be reached"</td><td>Server stopped. In PowerShell press <kbd>↑</kbd> then <kbd>Enter</kbd> to restart it; reload Chrome.</td><td>"Restarting the local server, five seconds."</td></tr>
+<tr><td>PowerShell shows "Invalid HTTP request"</td><td>The address became https. Type <code>http://127.0.0.1:8765</code> again.</td><td>(nothing)</td></tr>
+<tr><td>Simulation is slow or stuck</td><td>Click <span class="k">16×</span>, or click another dot to stop it.</td><td>"I'll speed it up."</td></tr>
+<tr><td>Meet freezes or drops</td><td>Rejoin, then Present now → Entire screen again.</td><td>"Sorry sir, my connection dropped. I'll share again."</td></tr>
+<tr><td>You lose your place</td><td>Click a section in this page's left index.</td><td>"Let me move on to…"</td></tr>
+<tr><td>You don't know an answer</td><td>Don't invent.</td><td>"That's a good point. I haven't tested that case. I'd expect …, and I'd like to check it properly."</td></tr>
+</tbody></table></div>
+</section>
+
+<!-- ============================================================ -->
+<section id="short">
+<h2>Short version <span class="t">IF HE SAYS "KEEP IT BRIEF"</span></h2>
+<div class="say"><p>Do these only, in this order (≈10 minutes):</p></div>
+<div class="do"><ol>
+  <li>Opening (section 1) and the problem in three sentences.</li>
+  <li>Run sample: <b>Flange, Fanuc dialect</b> → rotate → <b>▶ Simulate</b> at 16× → Process sheet.</li>
+  <li><b>Same part ×4</b> (the key idea).</li>
+  <li><b>REAL 3D carving</b> sample (real-file proof).</li>
+  <li><b>Results</b>: 0.80 vs 0.07, 94%, 0.999.</li>
+  <li>Show the PDF title and abstract, then the closing summary from section 9.</li>
+</ol></div>
+</section>
+</main>
+</div>
+
+<script>
+(function () {
+  const root = document.documentElement;
+  const store = {
+    get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+    set(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* storage unavailable */ } },
+  };
+  // text size
+  let size = parseFloat(store.get("rs-size")) || 19;
+  const apply = () => { root.style.setProperty("--size", size + "px"); store.set("rs-size", size); };
+  apply();
+  document.getElementById("bigger").onclick = () => { size = Math.min(30, size + 1); apply(); };
+  document.getElementById("smaller").onclick = () => { size = Math.max(14, size - 1); apply(); };
+  // theme toggle (system → dark → light)
+  const themes = ["", "dark", "light"];
+  let ti = themes.indexOf(store.get("rs-theme") || "");
+  const setTheme = () => { if (themes[ti]) root.setAttribute("data-theme", themes[ti]); else root.removeAttribute("data-theme");
+    document.getElementById("themebtn").textContent = "Theme: " + (themes[ti] || "auto"); store.set("rs-theme", themes[ti]); };
+  if (ti < 0) ti = 0;
+  setTheme();
+  document.getElementById("themebtn").onclick = () => { ti = (ti + 1) % themes.length; setTheme(); };
+  // checklist memory
+  document.querySelectorAll("#checks input").forEach((c) => {
+    c.checked = store.get("rs-" + c.id) === "1";
+    c.closest("li").classList.toggle("done", c.checked);
+    c.onchange = () => { store.set("rs-" + c.id, c.checked ? "1" : "0"); c.closest("li").classList.toggle("done", c.checked); };
+  });
+  // copy buttons
+  document.querySelectorAll("[data-copy]").forEach((b) => {
+    b.onclick = () => {
+      const el = document.getElementById(b.dataset.copy);
+      const done = () => { b.textContent = "Copied"; setTimeout(() => (b.textContent = "Copy"), 1500); };
+      if (navigator.clipboard) navigator.clipboard.writeText(el.textContent).then(done).catch(() => select(el));
+      else select(el);
+    };
+  });
+  function select(el) { const r = document.createRange(); r.selectNodeContents(el); const s = getSelection(); s.removeAllRanges(); s.addRange(r); }
+  // timer
+  let t0 = null, iv = null;
+  const clock = document.getElementById("clock"), btn = document.getElementById("startbtn");
+  btn.onclick = () => {
+    if (iv) { clearInterval(iv); iv = null; btn.textContent = "Start timer"; return; }
+    t0 = Date.now(); btn.textContent = "Stop timer";
+    iv = setInterval(() => { const s = Math.floor((Date.now() - t0) / 1000);
+      clock.textContent = String(Math.floor(s / 60)).padStart(2, "0") + ":" + String(s % 60).padStart(2, "0"); }, 500);
+  };
+})();
+</script>

@@ -189,7 +189,8 @@ export async function select(id, preloaded) {
   state.current = id;
   const rec = preloaded || await api(`/api/program/${encodeURIComponent(id)}`);
   state.rec = rec;
-  $("#title").textContent = rec.family !== undefined && rec.family !== null ? `${rec.id}  ·  F${rec.family + 1}` : rec.id;
+  const shown = rec.id.startsWith("upload-") ? `${rec.id.replace(/^upload-\d+-/, "")} (new)` : rec.id;
+  $("#title").textContent = rec.family !== undefined && rec.family !== null ? `${shown}  ·  F${rec.family + 1}` : shown;
   $("#desc").textContent = rec.description;
   $("#stl").hidden = !!preloaded;
   $("#stl").href = `/api/stl/${encodeURIComponent(id)}`;
@@ -277,9 +278,14 @@ export async function analyzeAndShow(promise, label) {
     await select(p.id, p);
     const fam = state.index.families.find((f) => f.id === p.family);
     $("#banner").hidden = false;
-    $("#banner").innerHTML = `<b>${esc(label)}</b> → part family <b>F${p.family + 1} · ${esc(fam?.label || "")}</b>
-      (fits ${Math.round(p.family_confidence * 100)}% of that family as well or better). Closest archived program:
-      <b>${r.similar[0].id}</b> at ${Math.round(r.similar[0].score * 100)}% similarity. The ★ on the map shows where it landed.`;
+    const best = r.similar[0];
+    $("#banner").innerHTML = best.score >= 0.75 && p.family_confidence >= 0.05
+      ? `<b>${esc(label)}</b> → part family <b>F${p.family + 1} · ${esc(fam?.label || "")}</b>
+        (fits ${Math.round(p.family_confidence * 100)}% of that family as well or better). Closest archived program:
+        <b>${best.id}</b> at ${Math.round(best.score * 100)}% similarity. The ★ on the map shows where it landed.`
+      : `<b>${esc(label)}</b> is <b>unlike anything in the archive</b>: the closest program, <b>${best.id}</b>, is only
+        ${Math.round(best.score * 100)}% similar (nearest family F${p.family + 1} · ${esc(fam?.label || "")}). In a shop this
+        would be flagged as a <b>new part type</b> rather than forced into an existing family.`;
     renderSimilar(p.id, r.similar);
     return r;
   } catch (e) {
