@@ -205,7 +205,7 @@ Requires Python 3.11+ (developed on 3.14, Windows 11).
 ```bash
 python -m venv .venv
 .venv/Scripts/activate            # Windows   (Linux/macOS: source .venv/bin/activate)
-pip install numpy scipy scikit-learn scikit-image trimesh matplotlib fastapi uvicorn python-multipart pytest
+pip install numpy scipy scikit-learn trimesh matplotlib fastapi uvicorn python-multipart pytest
 pytest -q tests
 ```
 

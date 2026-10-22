@@ -8,7 +8,6 @@ from __future__ import annotations
 import math
 
 import numpy as np
-from skimage import measure
 
 from .process import OPS
 
@@ -17,10 +16,56 @@ N_HIST = 12
 N_RADIAL = 12
 
 
+def hu_moments(img):
+    """The seven Hu moment invariants of a 2D image (rows = first index).
+
+    Raw moments m_pq, converted analytically to central moments mu_pq about
+    the centroid, normalised nu_pq = mu_pq / mu_00^(1 + (p+q)/2), then Hu's
+    1962 combinations. The arithmetic follows scikit-image step for step, so
+    results are bit-identical to it (this matters for the near-zero 7th
+    invariant of symmetric parts) without loading its compiled modules.
+    """
+    calc = np.asarray(img, dtype=np.float64)
+    orders = np.arange(4, dtype=np.float64)
+    for dim, n in enumerate(calc.shape):              # raw moments via per-axis dot products
+        powers = np.arange(n, dtype=np.float64)[:, None] ** orders
+        labels = [0, 1]
+        calc = np.einsum(calc, labels[:dim] + [2] + labels[dim + 1:], powers, [2, 3],
+                         labels[:dim] + [3] + labels[dim + 1:], optimize="greedy")
+    m = calc
+    cx, cy = m[1, 0] / m[0, 0], m[0, 1] / m[0, 0]
+    mu = np.zeros_like(m)
+    mu[0, 0] = m[0, 0]
+    mu[1, 1] = m[1, 1] - cx * m[0, 1]
+    mu[2, 0] = m[2, 0] - cx * m[1, 0]
+    mu[0, 2] = m[0, 2] - cy * m[0, 1]
+    mu[2, 1] = m[2, 1] - 2 * cx * m[1, 1] - cy * m[2, 0] + cx ** 2 * m[0, 1] + cy * cx * m[1, 0]
+    mu[1, 2] = m[1, 2] - 2 * cy * m[1, 1] - cx * m[0, 2] + 2 * cy * cx * m[0, 1]
+    mu[3, 0] = m[3, 0] - 3 * cx * m[2, 0] + 2 * cx ** 2 * m[1, 0]
+    mu[0, 3] = m[0, 3] - 3 * cy * m[0, 2] + 2 * cy ** 2 * m[0, 1]
+    nu = np.zeros_like(mu)
+    for p in range(4):
+        for q in range(4):
+            s = p + q
+            nu[p, q] = np.nan if s < 2 else (mu[p, q] / 1.0 ** s) / (mu[0, 0] ** (s / 2 + 1))
+    t0, t1 = nu[3, 0] + nu[1, 2], nu[2, 1] + nu[0, 3]
+    q0, q1 = t0 * t0, t1 * t1
+    n4, s, d = 4 * nu[1, 1], nu[2, 0] + nu[0, 2], nu[2, 0] - nu[0, 2]
+    hu = np.empty(7)
+    hu[0] = s
+    hu[1] = d * d + n4 * nu[1, 1]
+    hu[3] = q0 + q1
+    hu[5] = d * (q0 - q1) + n4 * t0 * t1
+    t0, t1 = t0 * (q0 - 3 * q1), t1 * (3 * q0 - q1)
+    q0, q1 = nu[3, 0] - 3 * nu[1, 2], 3 * nu[2, 1] - nu[0, 3]
+    hu[2] = q0 * q0 + q1 * q1
+    hu[4] = q0 * t0 + q1 * t1
+    hu[6] = q1 * t0 - q0 * t1
+    return hu
+
+
 def _hu(img):
-    mu = measure.moments_central(img)
-    nu = measure.moments_normalized(mu)
-    hu = measure.moments_hu(nu)
+    hu = hu_moments(img)
     return -np.sign(hu) * np.log10(np.abs(hu) + 1e-30)
 
 

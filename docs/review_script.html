@@ -382,7 +382,7 @@ details[open] summary { margin-bottom: 8px; }
 <p>"Knowing where the raw block was, because G-code never states the stock size. I estimate it from the facing pass, which usually overruns the block by about one cutter radius. Another was real files: they used variables and loops that my test data didn't have, so I extended the interpreter to execute them."</p></details>
 
 <details><summary>How fast is it? What tools did you use?</summary>
-<p>"About 1.7 seconds per program on a laptop, run in parallel. Python with NumPy, SciPy, scikit-image and scikit-learn; a FastAPI server; the dashboard uses Three.js for 3D and Plotly for charts; the paper is LaTeX in IEEE format."</p></details>
+<p>"About 1.7 seconds per program on a laptop, run in parallel. Python with NumPy, SciPy and scikit-learn (I implemented the shape measures like Hu moments myself in NumPy); a FastAPI server; the dashboard uses Three.js for 3D and Plotly for charts; the paper is LaTeX in IEEE format."</p></details>
 
 <details><summary>How did you generate the 1,200 test programs?</summary>
 <p>"With a generator I wrote in three parts. First, <b>8 parametric part families</b> (bolt plate, pocket housing, slotted bracket, flange, stepped block, tray, keyway bar, boss) with random dimensions, hole counts and depths. Second, a <b>mini CAM system</b> that turns each part into toolpaths: zig-zag or spiral pocketing, peck drilling, slots, profiles. Third, <b>four post-processors</b> that write the same toolpath as Fanuc, Haas, comment-free, or inch-incremental G-code. Each part is also rotated and offset randomly on the table. The true family and exact designed geometry are saved separately and used only for scoring."</p></details>
@@ -468,7 +468,7 @@ details[open] summary { margin-bottom: 8px; }
 <h3>Architecture and technologies</h3>
 <div class="say">
 <p>"It's a <b>Python</b> back end and a browser front end.</p>
-<p>The analysis uses <b>NumPy</b> for the arrays and the simulation, <b>SciPy</b> for labelling and morphology, <b>scikit-image</b> for region properties and Hu moments, <b>scikit-learn</b> for scaling, Ward, HDBSCAN and t-SNE, and <b>trimesh</b> for STL export.</p>
+<p>The analysis uses <b>NumPy</b> for the arrays and the simulation, <b>SciPy</b> for labelling and morphology, my own NumPy code for perimeters and Hu moments, <b>scikit-learn</b> for scaling, Ward, HDBSCAN and t-SNE, and <b>trimesh</b> for STL export.</p>
 <p><b>FastAPI</b> with Uvicorn serves REST endpoints: upload and identify, program details, similar programs, compare, results. The 600-program archive is processed in parallel, one process per CPU core, and cached as JSON.</p>
 <p>The height map is sent to the browser compactly as 16-bit integers. <b>Three.js</b> builds the 3D mesh from it, and the machining animation re-runs the cutter stamping in JavaScript, ending exactly on the server's result. <b>Plotly</b> draws the map and charts.</p>
 <p>There are 22 <b>pytest</b> tests, and the paper is <b>LaTeX</b> in the IEEE template, with every number generated from the results file."</p>
@@ -531,6 +531,7 @@ details[open] summary { margin-bottom: 8px; }
 <tbody>
 <tr><td>Page blank or no 3D part</td><td>Check Wi-Fi, then <kbd>Ctrl</kbd> <kbd>Shift</kbd> <kbd>R</kbd>. The 3D and chart libraries load from the internet.</td><td>"One second, reloading."</td></tr>
 <tr><td>"This site can't be reached"</td><td>Server stopped. In PowerShell press <kbd>↑</kbd> then <kbd>Enter</kbd> to restart it; reload Chrome.</td><td>"Restarting the local server, five seconds."</td></tr>
+<tr><td>Red error mentioning "Application Control policy has blocked this file"</td><td>Windows Smart App Control blocked a library file. Run a <b>different sample</b> or click a map dot (those are pre-computed and don't need the blocked file). Continue with Same part ×4, Results and the paper.</td><td>"Windows security is blocking one library on this laptop. Let me show you the pre-computed archive instead."</td></tr>
 <tr><td>PowerShell shows "Invalid HTTP request"</td><td>The address became https. Type <code>http://127.0.0.1:8765</code> again.</td><td>(nothing)</td></tr>
 <tr><td>Simulation is slow or stuck</td><td>Click <span class="k">16×</span>, or click another dot to stop it.</td><td>"I'll speed it up."</td></tr>
 <tr><td>Meet freezes or drops</td><td>Rejoin, then Present now → Entire screen again.</td><td>"Sorry sir, my connection dropped. I'll share again."</td></tr>

@@ -231,9 +231,9 @@ unusual programs. Similarity search uses cosine $k$-NN, and the archive map
 uses t-SNE~\cite{vandermaaten2008}.
 
 \subsection{Implementation and interactive dashboard}
-The system is written in Python (about 3,800 lines, using NumPy, SciPy,
-scikit-image and scikit-learn) with 22 unit tests for the interpreter, the
-macro layer and the simulator. A FastAPI back end serves a browser dashboard (Fig.~\ref{fig:dash})
+The system is written in Python (about 3,800 lines, using NumPy, SciPy and
+scikit-learn; region perimeters and Hu moments are implemented directly) with
+22 unit tests for the interpreter, the macro layer and the simulator. A FastAPI back end serves a browser dashboard (Fig.~\ref{fig:dash})
 built with Three.js and Plotly. Users can browse the archive map and the
 discovered families, inspect a recovered part in 3D, and replay its machining:
 the replay lowers the height map move by move and shows the G-code line being

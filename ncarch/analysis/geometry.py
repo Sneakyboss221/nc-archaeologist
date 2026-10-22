@@ -5,9 +5,24 @@ import math
 
 import numpy as np
 from scipy import ndimage
-from skimage import measure
 
 STRUCT = ndimage.generate_binary_structure(2, 1)
+
+# perimeter of a binary region: border pixels weighted by their neighbour pattern
+# (straight edges 1, diagonal steps sqrt(2), corners (1+sqrt(2))/2)
+_PERIM_W = np.zeros(50)
+_PERIM_W[[5, 7, 15, 17, 25, 27]] = 1.0
+_PERIM_W[[21, 33]] = np.sqrt(2)
+_PERIM_W[[13, 23]] = (1 + np.sqrt(2)) / 2
+_PERIM_KERNEL = np.array([[10, 2, 10], [2, 1, 2], [10, 2, 10]])
+
+
+def perimeter(mask):
+    """Perimeter in pixels of a binary region (4-connected border)."""
+    img = mask.astype(np.uint8)
+    border = img - ndimage.binary_erosion(img, STRUCT, border_value=0)
+    codes = ndimage.convolve(border, _PERIM_KERNEL, mode="constant", cval=0)
+    return float(np.bincount(codes.ravel(), minlength=50)[:50] @ _PERIM_W)
 
 
 def open_to_edge(mask, res, inner=None):
@@ -45,8 +60,7 @@ def facing_depth(depth, sheet):
 def _component(mask, D, res, edge_cells, inner=None):
     ys, xs = np.nonzero(mask)
     area = mask.sum() * res * res
-    props = measure.regionprops(mask.astype(np.uint8))[0]
-    perim = max(props.perimeter * res, 1e-9)
+    perim = max(perimeter(mask) * res, 1e-9)
     circ = 4 * math.pi * area / perim ** 2
     pts = np.column_stack([xs, ys]).astype(float) * res
     c = pts.mean(axis=0)

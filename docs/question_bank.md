@@ -286,4 +286,4 @@ Yes. Type or edit a program in the Playground, or upload any `.nc` file.
 It compares the distance to the family centre with the family's own members. Comment-free programs with guessed drill sizes sit a bit further out, but they still go to the right family.
 
 **70. What libraries did you use?**
-Python: NumPy, SciPy, scikit-image, scikit-learn, trimesh, FastAPI. Web: Three.js (3D) and Plotly (charts). The paper is in LaTeX (IEEEtran).
+Python: NumPy, SciPy, scikit-learn, trimesh, FastAPI. (Perimeter and Hu moments are implemented directly in NumPy.) Web: Three.js (3D) and Plotly (charts). The paper is in LaTeX (IEEEtran).
