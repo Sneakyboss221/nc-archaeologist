@@ -51,8 +51,9 @@ computer-integrated manufacturing, G-code, group technology, reverse engineering
 %======================================================================
 \section{Introduction}
 Computer-integrated manufacturing (CIM) rests on the flow of information
-between CAD, process planning (CAPP), CAM and the CNC controller~\cite{groover2019,xu2009}.
-In practice this flow often runs one way. The NC program is the artefact that
+between CAD, process planning (CAPP), CAM and the CNC controller~\cite{groover2019,xu2009,xu2004}.
+Industry~4.0 and cyber-physical production systems extend this integration to
+the whole factory~\cite{lee2015,lu2017}. In practice, however, the flow often runs one way. The NC program is the artefact that
 survives on the shop floor, while the CAD model and the planner's intent are
 lost when systems are migrated, suppliers change or programmers retire. A shop
 may hold thousands of programs named like \texttt{O1234.nc} that nobody can
@@ -105,13 +106,17 @@ which these methods do not address.
 
 \textbf{Group Technology and part families.} GT classification uses coding
 systems such as Opitz~\cite{opitz1970}, production-flow analysis~\cite{burbidge1989},
-and a large literature on cell-formation algorithms~\cite{selim1998,kusiak1987}.
-All of these assume design attributes or routing data as input.
+and a large literature on cell-formation algorithms~\cite{selim1998,kusiak1987},
+from rank-order clustering of machine--part incidence matrices~\cite{king1980}
+onwards. All of these assume design attributes or routing data as input.
 
 \textbf{Feature recognition and plan reuse.} Machining-feature recognition from
-B-rep solids is mature~\cite{han2000}, and CAD-model retrieval has been used to
-reuse process plans~\cite{pitta2005}. Both require the CAD model, which is
-exactly what is missing for legacy programs.
+B-rep solids is mature~\cite{han2000}, retrieval and generative CAPP systems
+build process plans from part descriptions~\cite{zhang1994}, and CAD-model
+retrieval has been used to reuse process plans~\cite{pitta2005}. Neutral
+product data (STEP, ISO~10303~\cite{iso10303}) and open, interoperable CNC
+architectures~\cite{xu2006} aim to keep this information connected. All of
+these require the CAD model, which is exactly what is missing for legacy programs.
 
 \textbf{Learning on G-code.} Recent work uses large language models to
 \emph{generate} G-code~\cite{abdelaal2025}, and notes that G-code carries no
@@ -119,7 +124,10 @@ semantic description of the geometry it produces. We address the inverse
 problem: recovering that geometry and using it.
 
 \textbf{Simulation.} The dexel (depth-element) representation for NC
-verification goes back to van Hook~\cite{vanhook1986}. We use its height-map
+verification goes back to van Hook~\cite{vanhook1986}, and discrete NC
+verification methods for detecting machining errors are well
+established~\cite{jerard1989}. Simulation models of this kind are also the
+basis of manufacturing digital twins~\cite{tao2019}. We use the height-map
 form as a fast, adequate model for 3-axis prismatic parts.
 
 %======================================================================
@@ -225,14 +233,14 @@ these are invariant to rotation and translation. The process block contains
 the operation-time mix, operation presence and counts, and tool statistics.
 Each block is standardised, weighted (0.5/0.5, chosen on a separate
 development set) and normalised by its dimension. Families come from Ward
-agglomerative clustering~\cite{ward1963}, with $k$ chosen by silhouette when
-unknown. HDBSCAN~\cite{campello2013} provides density-based families and flags
+agglomerative clustering~\cite{ward1963}, with $k$ chosen by the silhouette
+coefficient~\cite{rousseeuw1987} when unknown. HDBSCAN~\cite{campello2013,mcinnes2017} provides density-based families and flags
 unusual programs. Similarity search uses cosine $k$-NN, and the archive map
 uses t-SNE~\cite{vandermaaten2008}.
 
 \subsection{Implementation and interactive dashboard}
 The system is written in Python (about 3,800 lines, using NumPy, SciPy and
-scikit-learn; region perimeters and Hu moments are implemented directly) with
+scikit-learn~\cite{pedregosa2011}; region perimeters and Hu moments are implemented directly) with
 22 unit tests for the interpreter, the macro layer and the simulator. A FastAPI back end serves a browser dashboard (Fig.~\ref{fig:dash})
 built with Three.js and Plotly. Users can browse the archive map and the
 discovered families, inspect a recovered part in 3D, and replay its machining:
@@ -346,8 +354,11 @@ were flagged to the user.
 
 \subsection{Part-family discovery and retrieval}
 Table~\ref{tab:fam} and Fig.~\ref{fig:ablation} compare the full fingerprint
-with four baselines. Text TF-IDF works either on raw character $n$-grams or on
-the sequence of G/M/T codes with coordinates removed. The process-only and
+with four baselines. Text TF-IDF term weighting~\cite{salton1988} works either
+on raw character $n$-grams or on the sequence of G/M/T codes with coordinates
+removed. Clusterings are scored against the true families with the adjusted
+Rand index (ARI)~\cite{hubert1985} and normalised mutual information
+(NMI)~\cite{strehl2002}. The process-only and
 geometry-only variants use one block of our fingerprint each. Text baselines
 mostly recover the posting \emph{dialect} rather than the part family: their
 clusters agree with the dialect labels at ARI \TextRawDialect{} (raw) and
@@ -378,14 +389,14 @@ geometry only & \GeoARI & \GeoNMI & \GeoPURITY & \GeoPATFIVE & \GeoMAP \\
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=\columnwidth]{figs/ablation.pdf}
+\includegraphics[width=0.85\columnwidth]{figs/ablation.pdf}
 \caption{Ablation: clustering (ARI, NMI) and retrieval (P@5).}
 \label{fig:ablation}
 \end{figure}
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=\columnwidth]{figs/tsne.pdf}
+\includegraphics[width=0.8\columnwidth]{figs/tsne.pdf}
 \caption{t-SNE map of fingerprints. Colours are true families and markers are
 dialects. Dialects mix within each family.}
 \label{fig:tsne}
@@ -393,7 +404,7 @@ dialects. Dialects mix within each family.}
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=\columnwidth]{figs/confusion.pdf}
+\includegraphics[width=0.85\columnwidth]{figs/confusion.pdf}
 \caption{True families vs.\ discovered clusters (Hungarian-matched).}
 \label{fig:conf}
 \end{figure}
@@ -520,25 +531,41 @@ controller dialects and fixturing, a setting where text similarity fails. This
 offers a practical route to Group Technology and reuse for shops whose only
 record of a part is its G-code.
 
+\renewcommand{\IEEEbibitemsep}{0pt plus .5pt}
 \begin{thebibliography}{00}
 \bibitem{groover2019} M.~P. Groover, \emph{Automation, Production Systems, and Computer-Integrated Manufacturing}, 5th~ed. Pearson, 2019.
 \bibitem{xu2009} X.~Xu, \emph{Integrating Advanced Computer-Aided Design, Manufacturing, and Numerical Control: Principles and Implementations}. Hershey, PA: IGI Global, 2009.
+\bibitem{xu2004} X.~W. Xu and Q.~He, ``Striving for a total integration of CAD, CAPP, CAM and CNC,'' \emph{Robotics and Computer-Integrated Manufacturing}, vol.~20, no.~2, pp.~101--109, 2004.
+\bibitem{lee2015} J.~Lee, B.~Bagheri, and H.-A. Kao, ``A cyber-physical systems architecture for Industry 4.0-based manufacturing systems,'' \emph{Manufacturing Letters}, vol.~3, pp.~18--23, 2015.
+\bibitem{lu2017} Y.~Lu, ``Industry 4.0: A survey on technologies, applications and open research issues,'' \emph{J. Industrial Information Integration}, vol.~6, pp.~1--10, 2017.
 \bibitem{opitz1970} H.~Opitz, \emph{A Classification System to Describe Workpieces}. Oxford: Pergamon Press, 1970.
 \bibitem{burbidge1989} J.~L. Burbidge, \emph{Production Flow Analysis for Planning Group Technology}. Oxford: Clarendon Press, 1989.
-\bibitem{selim1998} H.~M. Selim, R.~G. Askin, and A.~J. Vakharia, ``Cell formation in group technology: review, evaluation and directions for future research,'' \emph{Computers \& Industrial Engineering}, vol.~34, no.~1, pp.~3--20, 1998.
-\bibitem{kusiak1987} A.~Kusiak, ``The generalized group technology concept,'' \emph{International Journal of Production Research}, vol.~25, no.~4, pp.~561--569, 1987.
 \bibitem{tsoutsos2017} N.~G. Tsoutsos, H.~Gamil, and M.~Maniatakos, ``Secure 3D printing: Reconstructing and validating solid geometries using toolpath reverse engineering,'' in \emph{Proc. 3rd ACM Workshop on Cyber-Physical System Security (CPSS)}, 2017.
 \bibitem{kinski2020} W.~Kiński and W.~Sobieski, ``Geometry extraction from GCODE files destined for 3D printers,'' \emph{Technical Sciences}, vol.~23, no.~2, pp.~115--130, 2020, doi: 10.31648/ts.5644.
+\bibitem{selim1998} H.~M. Selim, R.~G. Askin, and A.~J. Vakharia, ``Cell formation in group technology: review, evaluation and directions for future research,'' \emph{Computers \& Industrial Engineering}, vol.~34, no.~1, pp.~3--20, 1998.
+\bibitem{kusiak1987} A.~Kusiak, ``The generalized group technology concept,'' \emph{International Journal of Production Research}, vol.~25, no.~4, pp.~561--569, 1987.
+\bibitem{king1980} J.~R. King, ``Machine-component grouping in production flow analysis: an approach using a rank order clustering algorithm,'' \emph{International Journal of Production Research}, vol.~18, no.~2, pp.~213--232, 1980.
 \bibitem{han2000} J.~Han, M.~Pratt, and W.~C. Regli, ``Manufacturing feature recognition from solid models: a status report,'' \emph{IEEE Trans. Robotics and Automation}, vol.~16, no.~6, pp.~782--796, 2000.
+\bibitem{zhang1994} H.-C. Zhang and L.~Alting, \emph{Computerized Manufacturing Process Planning Systems}. London: Chapman \& Hall, 1994.
 \bibitem{pitta2005} C.~Pitta and M.~M. Marefat, ``Intelligent retrieval and reuse of CAD solid models,'' in \emph{Proc. IEEE Int. Conf. Robotics and Automation (ICRA)}, 2005.
+\bibitem{iso10303} ISO 10303-1:1994, \emph{Industrial automation systems and integration --- Product data representation and exchange --- Part 1: Overview and fundamental principles}.
+\bibitem{xu2006} X.~W. Xu and S.~T. Newman, ``Making CNC machine tools more open, interoperable and intelligent---a review of the technologies,'' \emph{Computers in Industry}, vol.~57, no.~2, pp.~141--152, 2006.
 \bibitem{abdelaal2025} M.~Abdelaal, S.~Lokadjaja, and G.~Engert, ``GLLM: Self-corrective G-code generation using large language models with user feedback,'' in \emph{Proc. BTW 2025 (Industrial Track)}, 2025, arXiv:2501.17584.
 \bibitem{vanhook1986} T.~Van~Hook, ``Real-time shaded NC milling display,'' \emph{ACM SIGGRAPH Computer Graphics}, vol.~20, no.~4, pp.~15--20, 1986.
+\bibitem{jerard1989} R.~B. Jerard, R.~L. Drysdale, K.~Hauck, B.~Schaudt, and J.~Magewick, ``Methods for detecting errors in numerically controlled machining of sculptured surfaces,'' \emph{IEEE Computer Graphics and Applications}, vol.~9, no.~1, pp.~26--39, 1989.
+\bibitem{tao2019} F.~Tao, H.~Zhang, A.~Liu, and A.~Y.~C. Nee, ``Digital twin in industry: State-of-the-art,'' \emph{IEEE Trans. Industrial Informatics}, vol.~15, no.~4, pp.~2405--2415, 2019.
 \bibitem{iso6983} ISO 6983-1:2009, \emph{Automation systems and integration --- Numerical control of machines --- Program format and definitions of address words}.
-\bibitem{iso14649} ISO 14649-1:2003, \emph{Industrial automation systems and integration --- Physical device control --- Data model for computerized numerical controllers}.
 \bibitem{hu1962} M.-K. Hu, ``Visual pattern recognition by moment invariants,'' \emph{IRE Trans. Information Theory}, vol.~8, no.~2, pp.~179--187, 1962.
 \bibitem{ward1963} J.~H. Ward, ``Hierarchical grouping to optimize an objective function,'' \emph{J. American Statistical Association}, vol.~58, no.~301, pp.~236--244, 1963.
+\bibitem{rousseeuw1987} P.~J. Rousseeuw, ``Silhouettes: a graphical aid to the interpretation and validation of cluster analysis,'' \emph{J. Computational and Applied Mathematics}, vol.~20, pp.~53--65, 1987.
 \bibitem{campello2013} R.~J. G.~B. Campello, D.~Moulavi, and J.~Sander, ``Density-based clustering based on hierarchical density estimates,'' in \emph{Proc. PAKDD}, LNCS 7819, 2013, pp.~160--172.
+\bibitem{mcinnes2017} L.~McInnes, J.~Healy, and S.~Astels, ``hdbscan: Hierarchical density based clustering,'' \emph{J. Open Source Software}, vol.~2, no.~11, p.~205, 2017.
 \bibitem{vandermaaten2008} L.~van~der~Maaten and G.~Hinton, ``Visualizing data using t-SNE,'' \emph{J. Machine Learning Research}, vol.~9, pp.~2579--2605, 2008.
+\bibitem{pedregosa2011} F.~Pedregosa \emph{et al.}, ``Scikit-learn: Machine learning in Python,'' \emph{J. Machine Learning Research}, vol.~12, pp.~2825--2830, 2011.
+\bibitem{salton1988} G.~Salton and C.~Buckley, ``Term-weighting approaches in automatic text retrieval,'' \emph{Information Processing \& Management}, vol.~24, no.~5, pp.~513--523, 1988.
+\bibitem{hubert1985} L.~Hubert and P.~Arabie, ``Comparing partitions,'' \emph{J. Classification}, vol.~2, no.~1, pp.~193--218, 1985.
+\bibitem{strehl2002} A.~Strehl and J.~Ghosh, ``Cluster ensembles---a knowledge reuse framework for combining multiple partitions,'' \emph{J. Machine Learning Research}, vol.~3, pp.~583--617, 2002.
+\bibitem{iso14649} ISO 14649-1:2003, \emph{Industrial automation systems and integration --- Physical device control --- Data model for computerized numerical controllers}.
 \end{thebibliography}
 
 \end{document}
