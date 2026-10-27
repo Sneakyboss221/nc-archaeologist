@@ -96,6 +96,38 @@ step & 187 & 0.955 & 0.797 \\}
 \texttt{lathe\_\allowbreak program} (14 lines) & 1x slot 36x6x25 \newline \textit{warnings: Looks like a lathe; Non-XY plane} \\
 \texttt{linuxcnc\_\allowbreak style} (35 lines) & 2x step \newline \textit{warnings: none} \\
 \texttt{macro\_\allowbreak bolt\_\allowbreak circle} (24 lines) & 6x hole $\varnothing$7 on PCD 80, 1x circular pocket \newline \textit{warnings: none} \\}
+\newcommand{\XgbAcc}{98.3\%}
+\newcommand{\XgbFOne}{0.983}
+\newcommand{\XgbTopTwo}{99.5\%}
+\newcommand{\XgbLogLoss}{0.061}
+\newcommand{\XgbErrors}{10}
+\newcommand{\XgbCV}{99.0\%}
+\newcommand{\XgbCVsd}{0.8\%}
+\newcommand{\XgbDepth}{3}
+\newcommand{\XgbTrees}{400}
+\newcommand{\XgbLR}{0.05}
+\newcommand{\XgbConfRight}{0.986}
+\newcommand{\XgbConfWrong}{0.706}
+\newcommand{\XgbRealConf}{0.74}
+\newcommand{\XgbTestConf}{0.98}
+\newcommand{\XgbDialectMin}{97.4\%}
+\newcommand{\XgbDialectMax}{99.3\%}
+\newcommand{\XgbGeoShare}{62.9\%}
+\newcommand{\XgbImpCounts}{31.5\%}
+\newcommand{\XgbImpProcess}{37.1\%}
+\newcommand{\XgbImpRadial}{14.4\%}
+\newcommand{\XgbImpShape}{14.1\%}
+\newcommand{\XgbImpHu}{1.5\%}
+\newcommand{\XgbTopFeature}{count: circular pocket}
+\newcommand{\XgbLatheConf}{0.99}
+\newcommand{\XgbRows}{XGBoost, full fingerprint & 0.983 & 0.983 \\
+XGBoost, geometry only & 0.987 & 0.987 \\
+XGBoost, process only & 0.965 & 0.965 \\
+1-nearest neighbour, full fingerprint & 0.973 & 0.973 \\
+XGBoost, G-code text (TF-IDF) & 0.752 & 0.752 \\}
+\newcommand{\XgbGeoAcc}{98.7\%}
+\newcommand{\XgbTextAcc}{75.2\%}
+\newcommand{\XgbKnnAcc}{97.3\%}
 \newcommand{\RealN}{15}
 \newcommand{\RealAnalysed}{13}
 \newcommand{\RealMacro}{5}

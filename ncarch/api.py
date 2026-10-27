@@ -45,6 +45,16 @@ class Archive:
                                                             key=lambda p: self.names.index(p["id"]))])
         self.centroids = {int(c): self.X[self.labels == c].mean(axis=0) for c in np.unique(self.labels)}
         self.uploads = {}
+        self.xgb, self.xgb_families = None, []
+        model_path, meta_path = out / "xgb_family.json", out / "xgb_family_meta.json"
+        if model_path.exists() and meta_path.exists():
+            try:   # supervised family classifier (experiments/xgboost_family.py); optional
+                import xgboost
+                self.xgb = xgboost.XGBClassifier()
+                self.xgb.load_model(str(model_path))
+                self.xgb_families = json.loads(meta_path.read_text())["families"]
+            except Exception:
+                self.xgb = None
         self.families = self._label_families()
 
     def _label_families(self):
@@ -152,6 +162,10 @@ def _identify(text, label):
     member_d = np.linalg.norm(a.X[a.labels == fam] - a.centroids[fam], axis=1)
     rec["family"] = int(fam)
     rec["family_confidence"] = round(float((member_d >= dists[fam]).mean()), 3)
+    if a.xgb is not None:
+        proba = a.xgb.predict_proba(np.hstack([rec["geo"], rec["proc"]])[None, :])[0]
+        top = np.argsort(-proba)[:3]
+        rec["xgb"] = [dict(family=a.xgb_families[i].replace("_", " "), p=round(float(proba[i]), 3)) for i in top]
     a.uploads[name] = rec
     sims = [dict(id=a.names[j], score=round(s, 3), family=int(a.labels[j])) for j, s in similar(a.X, query=x, k=6)]
     return dict(program=_public(rec), similar=sims)

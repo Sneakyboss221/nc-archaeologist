@@ -1,0 +1,409 @@
+{
+  "protocol": "5-fold stratified CV on the 600-program development set for hyper-parameters; one evaluation on the 600-program held-out test set",
+  "grid": {
+    "max_depth": [
+      3,
+      4,
+      6
+    ],
+    "n_estimators": [
+      200,
+      400
+    ],
+    "learning_rate": [
+      0.05,
+      0.1
+    ]
+  },
+  "fixed": {
+    "subsample": 0.8,
+    "colsample_bytree": 0.8,
+    "objective": "multi:softprob",
+    "eval_metric": "mlogloss",
+    "tree_method": "hist",
+    "random_state": 0
+  },
+  "chosen": {
+    "max_depth": 3,
+    "n_estimators": 400,
+    "learning_rate": 0.05
+  },
+  "cv_accuracy": 0.99,
+  "cv_std": 0.008164965809277273,
+  "cv_all": [
+    {
+      "accuracy": 0.99,
+      "std": 0.008164965809277273,
+      "max_depth": 3,
+      "n_estimators": 400,
+      "learning_rate": 0.05
+    },
+    {
+      "accuracy": 0.99,
+      "std": 0.008164965809277273,
+      "max_depth": 4,
+      "n_estimators": 400,
+      "learning_rate": 0.05
+    },
+    {
+      "accuracy": 0.99,
+      "std": 0.008164965809277273,
+      "max_depth": 4,
+      "n_estimators": 400,
+      "learning_rate": 0.1
+    },
+    {
+      "accuracy": 0.99,
+      "std": 0.008164965809277273,
+      "max_depth": 6,
+      "n_estimators": 400,
+      "learning_rate": 0.05
+    },
+    {
+      "accuracy": 0.99,
+      "std": 0.008164965809277273,
+      "max_depth": 6,
+      "n_estimators": 400,
+      "learning_rate": 0.1
+    },
+    {
+      "accuracy": 0.9883333333333333,
+      "std": 0.006666666666666687,
+      "max_depth": 3,
+      "n_estimators": 200,
+      "learning_rate": 0.05
+    },
+    {
+      "accuracy": 0.9883333333333333,
+      "std": 0.006666666666666687,
+      "max_depth": 3,
+      "n_estimators": 200,
+      "learning_rate": 0.1
+    },
+    {
+      "accuracy": 0.9883333333333333,
+      "std": 0.006666666666666687,
+      "max_depth": 3,
+      "n_estimators": 400,
+      "learning_rate": 0.1
+    },
+    {
+      "accuracy": 0.9883333333333333,
+      "std": 0.006666666666666687,
+      "max_depth": 4,
+      "n_estimators": 200,
+      "learning_rate": 0.05
+    },
+    {
+      "accuracy": 0.9883333333333333,
+      "std": 0.006666666666666687,
+      "max_depth": 4,
+      "n_estimators": 200,
+      "learning_rate": 0.1
+    },
+    {
+      "accuracy": 0.9883333333333333,
+      "std": 0.006666666666666687,
+      "max_depth": 6,
+      "n_estimators": 200,
+      "learning_rate": 0.05
+    },
+    {
+      "accuracy": 0.9883333333333333,
+      "std": 0.006666666666666687,
+      "max_depth": 6,
+      "n_estimators": 200,
+      "learning_rate": 0.1
+    }
+  ],
+  "test": {
+    "accuracy": 0.9833333333333333,
+    "macro_f1": 0.9834765700288215,
+    "top2_accuracy": 0.995,
+    "log_loss": 0.06112997606396675,
+    "per_family_f1": {
+      "bolt_plate": 0.9932885906040269,
+      "pocket_housing": 0.972972972972973,
+      "slotted_bracket": 1.0,
+      "flange": 1.0,
+      "stepped_block": 0.9866666666666667,
+      "tray": 1.0,
+      "keyway_bar": 0.9655172413793104,
+      "boss": 0.9493670886075949
+    },
+    "per_dialect_accuracy": {
+      "fanuc": 0.993421052631579,
+      "haas": 0.9736842105263158,
+      "inch_inc": 0.9791666666666666,
+      "minimal": 0.9868421052631579
+    },
+    "confusion": [
+      [
+        74,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      [
+        0,
+        72,
+        0,
+        0,
+        0,
+        0,
+        0,
+        3
+      ],
+      [
+        0,
+        0,
+        75,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        75,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        1,
+        0,
+        0,
+        74,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        75,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        70,
+        4
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        75
+      ]
+    ],
+    "families": [
+      "bolt_plate",
+      "pocket_housing",
+      "slotted_bracket",
+      "flange",
+      "stepped_block",
+      "tray",
+      "keyway_bar",
+      "boss"
+    ],
+    "mean_confidence_correct": 0.9864268898963928,
+    "mean_confidence_wrong": 0.7063440680503845
+  },
+  "baselines": {
+    "XGBoost, geometry only": {
+      "accuracy": 0.9866666666666667,
+      "macro_f1": 0.9867151216769681
+    },
+    "XGBoost, process only": {
+      "accuracy": 0.965,
+      "macro_f1": 0.9651475282764364
+    },
+    "XGBoost, G-code text (TF-IDF)": {
+      "accuracy": 0.7516666666666667,
+      "macro_f1": 0.7519582878711566
+    },
+    "1-nearest neighbour, full fingerprint": {
+      "accuracy": 0.9733333333333334,
+      "macro_f1": 0.9733675492171845
+    }
+  },
+  "importance_top": [
+    {
+      "feature": "count: circular pocket",
+      "share": 0.14012511097507918,
+      "group": "feature counts"
+    },
+    {
+      "feature": "radial profile 3",
+      "share": 0.08261388388355488,
+      "group": "radial profile"
+    },
+    {
+      "feature": "count: slotting ops",
+      "share": 0.07441400675910936,
+      "group": "process"
+    },
+    {
+      "feature": "count: pocket island",
+      "share": 0.0663152036117104,
+      "group": "feature counts"
+    },
+    {
+      "feature": "nesting",
+      "share": 0.06420834588197723,
+      "group": "shape terms"
+    },
+    {
+      "feature": "time share: pocket island",
+      "share": 0.06255989843658762,
+      "group": "process"
+    },
+    {
+      "feature": "count: pocketing ops",
+      "share": 0.06039669685161804,
+      "group": "process"
+    },
+    {
+      "feature": "count: pocket",
+      "share": 0.0583635652481075,
+      "group": "feature counts"
+    },
+    {
+      "feature": "elongation",
+      "share": 0.04049495480124877,
+      "group": "shape terms"
+    },
+    {
+      "feature": "has: bore",
+      "share": 0.03690422862186928,
+      "group": "process"
+    },
+    {
+      "feature": "has: slotting",
+      "share": 0.026053750011890364,
+      "group": "process"
+    },
+    {
+      "feature": "count: slot",
+      "share": 0.025419475990275744,
+      "group": "feature counts"
+    },
+    {
+      "feature": "time share: bore",
+      "share": 0.02285806484724201,
+      "group": "process"
+    },
+    {
+      "feature": "count: step",
+      "share": 0.02095084610911396,
+      "group": "feature counts"
+    },
+    {
+      "feature": "largest-feature share",
+      "share": 0.019414628021406564,
+      "group": "shape terms"
+    }
+  ],
+  "importance_by_group": {
+    "process": 0.37133289246164763,
+    "feature counts": 0.31485600137581793,
+    "radial profile": 0.14360023263535185,
+    "shape terms": 0.14146936418651265,
+    "Hu moments": 0.014900976482303726,
+    "depth histogram": 0.013840532858366119
+  },
+  "geometry_share": 0.6286671075383522,
+  "real_programs": [
+    {
+      "file": "3D_Chips.ngc",
+      "top_family": "stepped_block",
+      "confidence": 0.7598289251327515
+    },
+    {
+      "file": "arcspiral.ngc",
+      "top_family": "flange",
+      "confidence": 0.8833112120628357
+    },
+    {
+      "file": "cds.ngc",
+      "top_family": "stepped_block",
+      "confidence": 0.855066180229187
+    },
+    {
+      "file": "comp-g1.ngc",
+      "top_family": "bolt_plate",
+      "confidence": 0.47238093614578247
+    },
+    {
+      "file": "daisy.ngc",
+      "top_family": "stepped_block",
+      "confidence": 0.5232242345809937
+    },
+    {
+      "file": "gmoccapy_2_tools_with_cutter_radius_compensation.ngc",
+      "top_family": "boss",
+      "confidence": 0.9849821329116821
+    },
+    {
+      "file": "hole-circle.ngc",
+      "top_family": "bolt_plate",
+      "confidence": 0.9647587537765503
+    },
+    {
+      "file": "lathe_pawn.ngc",
+      "top_family": "stepped_block",
+      "confidence": 0.9853314161300659
+    },
+    {
+      "file": "mmount.ngc",
+      "top_family": "boss",
+      "confidence": 0.4097689986228943
+    },
+    {
+      "file": "polar.ngc",
+      "top_family": "bolt_plate",
+      "confidence": 0.907015860080719
+    },
+    {
+      "file": "spiral.ngc",
+      "top_family": "flange",
+      "confidence": 0.8868298530578613
+    },
+    {
+      "file": "tort.ngc",
+      "top_family": "boss",
+      "confidence": 0.5277265906333923
+    },
+    {
+      "file": "x-trim.ngc",
+      "top_family": "bolt_plate",
+      "confidence": 0.4710765480995178
+    }
+  ],
+  "real_mean_confidence": 0.7408693570357102,
+  "test_mean_confidence": 0.9817588329315186,
+  "runtime_s": 241.4
+}

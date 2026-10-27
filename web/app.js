@@ -286,6 +286,12 @@ export async function analyzeAndShow(promise, label) {
       : `<b>${esc(label)}</b> is <b>unlike anything in the archive</b>: the closest program, <b>${best.id}</b>, is only
         ${Math.round(best.score * 100)}% similar (nearest family F${p.family + 1} · ${esc(fam?.label || "")}). In a shop this
         would be flagged as a <b>new part type</b> rather than forced into an existing family.`;
+    if (p.xgb) {
+      const x = p.xgb[0];
+      $("#banner").innerHTML += `<br><b>XGBoost classifier</b> (trained on labelled programs): ${esc(x.family)} ·
+        ${Math.round(x.p * 100)}% confidence${x.p < 0.6 ? " (low: likely a part type it was not trained on)" : ""}
+        <span class="hint">· next: ${p.xgb.slice(1).map((o) => `${esc(o.family)} ${Math.round(o.p * 100)}%`).join(", ")}</span>`;
+    }
     renderSimilar(p.id, r.similar);
     return r;
   } catch (e) {

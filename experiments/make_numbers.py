@@ -98,6 +98,49 @@ for r in M.get("handwritten", []):
               f"\\newline \\textit{{warnings: {w}}} \\\\")
 out.append("\\newcommand{\\HandRows}{" + "\n".join(hw) + "}")
 
+# supervised family classification (experiments/xgboost_family.py)
+XG_PATH = Path("results/xgboost.json")
+if XG_PATH.exists():
+    XG = json.loads(XG_PATH.read_text())
+    T = XG["test"]
+    cmd("XgbAcc", pct(T["accuracy"]))
+    cmd("XgbFOne", T["macro_f1"], "{:.3f}")
+    cmd("XgbTopTwo", pct(T["top2_accuracy"]))
+    cmd("XgbLogLoss", T["log_loss"], "{:.3f}")
+    cmd("XgbErrors", sum(map(sum, T["confusion"])) - sum(T["confusion"][i][i] for i in range(len(T["confusion"]))), "{:d}")
+    cmd("XgbCV", pct(XG["cv_accuracy"]))
+    cmd("XgbCVsd", f"{100 * XG['cv_std']:.1f}\\%")
+    c = XG["chosen"]
+    cmd("XgbDepth", c["max_depth"], "{:d}")
+    cmd("XgbTrees", c["n_estimators"], "{:d}")
+    cmd("XgbLR", c["learning_rate"], "{:.2f}")
+    cmd("XgbConfRight", T["mean_confidence_correct"], "{:.3f}")
+    cmd("XgbConfWrong", T["mean_confidence_wrong"] or 0.0, "{:.3f}")
+    cmd("XgbRealConf", XG["real_mean_confidence"], "{:.2f}")
+    cmd("XgbTestConf", XG["test_mean_confidence"], "{:.2f}")
+    dia = T["per_dialect_accuracy"]
+    cmd("XgbDialectMin", pct(min(dia.values())))
+    cmd("XgbDialectMax", pct(max(dia.values())))
+    g = XG["importance_by_group"]
+    cmd("XgbGeoShare", pct(XG["geometry_share"]))
+    cmd("XgbImpCounts", pct(g.get("feature counts", 0)))
+    cmd("XgbImpProcess", pct(g.get("process", 0)))
+    cmd("XgbImpRadial", pct(g.get("radial profile", 0)))
+    cmd("XgbImpShape", pct(g.get("shape terms", 0)))
+    cmd("XgbImpHu", pct(g.get("Hu moments", 0)))
+    cmd("XgbTopFeature", XG["importance_top"][0]["feature"])
+    lathe = next((r for r in XG["real_programs"] if r["file"].startswith("lathe")), None)
+    cmd("XgbLatheConf", lathe["confidence"] if lathe else 0.0, "{:.2f}")
+    B = XG["baselines"]
+    rows = [f"XGBoost, full fingerprint & {T['accuracy']:.3f} & {T['macro_f1']:.3f} \\\\"]
+    for k in ("XGBoost, geometry only", "XGBoost, process only", "1-nearest neighbour, full fingerprint",
+              "XGBoost, G-code text (TF-IDF)"):
+        rows.append(f"{k} & {B[k]['accuracy']:.3f} & {B[k]['macro_f1']:.3f} \\\\")
+    out.append("\\newcommand{\\XgbRows}{" + "\n".join(rows) + "}")
+    cmd("XgbGeoAcc", pct(B["XGBoost, geometry only"]["accuracy"]))
+    cmd("XgbTextAcc", pct(B["XGBoost, G-code text (TF-IDF)"]["accuracy"]))
+    cmd("XgbKnnAcc", pct(B["1-nearest neighbour, full fingerprint"]["accuracy"]))
+
 # open-source real programs (experiments/real_world.py)
 RW_PATH = Path("results/real_world.json")
 if RW_PATH.exists():

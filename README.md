@@ -17,10 +17,13 @@ All parameters were tuned on a development set (seed 7). The numbers below are f
 | Part-family discovery (Ward, k = 8) | Adjusted Rand Index | **0.797** | 0.074 |
 | | NMI / purity | 0.822 / 0.907 | 0.197 / 0.232 |
 | Similar-program retrieval | Precision@5 / mAP | **0.939** / 0.851 | 0.558 / 0.205 |
+| Supervised family classification (XGBoost, trained on the dev set) | accuracy / macro-F1 | **0.983** / 0.983 | 0.752 / 0.752 (XGBoost on text) |
 | Part recovery, tools named in comments (n = 448) | removed-volume IoU / median RMS | **0.999** / 0.11 mm | n/a |
 | Part recovery, all programs | IoU | 0.925 | n/a |
 | Hole detection | recall / precision / position MAE | 100% / 99.9% / 0.18 mm | n/a |
 | Same part posted in 4 dialects (40 parts) | mean cosine similarity | 0.92 (other families: −0.08) | n/a |
+
+**XGBoost** (`experiments/xgboost_family.py`) covers the case where part of an archive is already labelled. Hyper-parameters (depth, trees, learning rate) are chosen by stratified 5-fold CV on the development set (CV accuracy 0.990 ± 0.008; chosen depth 3, 400 trees, learning rate 0.05), then evaluated once on the held-out set: 98.3% accuracy, 99.5% top-2, 10 errors in 600. Geometry features alone give 98.7%, the process block alone 96.5%, and 1-NN on the fingerprint 97.3%. Gain importance is led by recognised feature counts and process counts, while Hu moments contribute about 1.5%. Mean confidence drops from 0.98 on known families to 0.74 on the LinuxCNC programs. It is a closed-set classifier, though (the lathe program still gets 0.98+), so new part types are detected through fingerprint similarity, not classifier confidence.
 
 Text-based clustering agrees with the *dialect* labels (ARI 0.61) far more than with the part families (ARI 0.07). It learns how a program is written, not what it makes. Ablation: geometry block alone 0.618 ARI, process block alone 0.572, combined 0.797.
 
@@ -184,6 +187,7 @@ ncarch/
   api.py       FastAPI back end for the dashboard
 web/           dashboard (vanilla JS modules, Three.js, Plotly)
 experiments/   run_all.py (all paper metrics + figures), real_world.py (LinuxCNC programs),
+               xgboost_family.py (supervised XGBoost classifier, feature importance),
                make_numbers.py (→ paper/numbers.tex)
 paper/         main.tex (IEEEtran), main.pdf, figs/, numbers.tex (generated)
 data/          development benchmark (seed 7): programs/ + gt/
@@ -205,7 +209,7 @@ Requires Python 3.11+ (developed on 3.14, Windows 11).
 ```bash
 python -m venv .venv
 .venv/Scripts/activate            # Windows   (Linux/macOS: source .venv/bin/activate)
-pip install numpy scipy scikit-learn trimesh matplotlib fastapi uvicorn python-multipart pytest
+pip install numpy scipy scikit-learn xgboost trimesh matplotlib fastapi uvicorn python-multipart pytest
 pytest -q tests
 ```
 
@@ -240,6 +244,8 @@ python -m ncarch.datagen.generate data_test --per-family 75 --seed 11
 python -m ncarch.pipeline data_test/programs out_test
 python -m experiments.run_all --data data_test --out out_test      # ~10 min, writes results/ and paper/figs/
 python -m experiments.real_world                                   # LinuxCNC programs → results/real_world.json
+python -m ncarch.pipeline data/programs out_dev                    # dev-set fingerprints (XGBoost training data)
+python -m experiments.xgboost_family                               # CV on dev, test on held-out → results/xgboost.json
 python -m experiments.make_numbers                                 # results/*.json → paper/numbers.tex
 cd paper && pdflatex main.tex && pdflatex main.tex
 ```

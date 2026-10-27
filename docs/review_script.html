@@ -373,6 +373,11 @@ details[open] summary { margin-bottom: 8px; }
 <details><summary>How would a factory actually use this?</summary>
 <p>"Run it once over the whole program archive. Then you can search 'have we made this before?' when quoting, use the families to plan cells and standardise tooling, and use the recovered parts and process sheets as documentation for legacy parts."</p></details>
 
+<details><summary>Where do you use XGBoost? Why?</summary>
+<p>"For the case where a shop already has some programs labelled. Clustering works with no labels; XGBoost is trained on the fingerprints of labelled programs and predicts the family of new ones with a confidence. I tuned it with 5-fold cross-validation on the 600 development programs (depth 3, 400 trees, learning rate 0.05) and tested once on the 600 held-out programs: <b>98.3% accuracy</b>, 99.5% top-2, 10 mistakes in 600. Trained on the G-code text instead, it only gets 75%, so the fingerprint matters even with labels."</p>
+<p>If he asks more: "Feature importance shows it relies most on recognised feature counts, like the number of circular pockets, and on process counts. Hu moments contribute little. It also shows in the dashboard when you upload a program. One limitation: it only knows the families it was trained on, so for detecting brand-new part types I use the fingerprint similarity instead. The lathe program still got a confident wrong answer from XGBoost."</p>
+<p class="tip">Show it: Run a sample → Flange, Fanuc. The green banner's second line is the XGBoost prediction. Paper: Section V-D, Table IV and Fig. 8.</p></details>
+
 <details><summary>Why not use AI or an LLM?</summary>
 <p>"LLMs can generate G-code but don't reliably understand its geometry. Even the GLLM paper notes G-code has no semantic description of shape. This approach is physical and deterministic: it simulates the cutter, so every result is explainable and checkable."</p></details>
 
@@ -469,7 +474,7 @@ details[open] summary { margin-bottom: 8px; }
 <h3>Architecture and technologies</h3>
 <div class="say">
 <p>"It's a <b>Python</b> back end and a browser front end.</p>
-<p>The analysis uses <b>NumPy</b> for the arrays and the simulation, <b>SciPy</b> for labelling and morphology, my own NumPy code for perimeters and Hu moments, <b>scikit-learn</b> for scaling, Ward, HDBSCAN and t-SNE, and <b>trimesh</b> for STL export.</p>
+<p>The analysis uses <b>NumPy</b> for the arrays and the simulation, <b>SciPy</b> for labelling and morphology, my own NumPy code for perimeters and Hu moments, <b>scikit-learn</b> for scaling, Ward, HDBSCAN and t-SNE, <b>XGBoost</b> for the supervised family classifier, and <b>trimesh</b> for STL export.</p>
 <p><b>FastAPI</b> with Uvicorn serves REST endpoints: upload and identify, program details, similar programs, compare, results. The 600-program archive is processed in parallel, one process per CPU core, and cached as JSON.</p>
 <p>The height map is sent to the browser compactly as 16-bit integers. <b>Three.js</b> builds the 3D mesh from it, and the machining animation re-runs the cutter stamping in JavaScript, ending exactly on the server's result. <b>Plotly</b> draws the map and charts.</p>
 <p>There are 22 <b>pytest</b> tests, and the paper is <b>LaTeX</b> in the IEEE template, with every number generated from the results file."</p>

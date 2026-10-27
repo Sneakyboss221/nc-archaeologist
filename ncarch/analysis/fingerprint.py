@@ -136,6 +136,23 @@ def process_vector(sheet, summary):
                            [math.log1p(summary["n_tools"]), math.log1p(summary["tool_changes"])]])
 
 
+GEOMETRY_NAMES = (
+    [f"depth hist {i / N_HIST:.2f}-{(i + 1) / N_HIST:.2f}" for i in range(N_HIST)]
+    + [f"Hu moment {i + 1}" for i in range(7)]
+    + [f"radial profile {i + 1}" for i in range(N_RADIAL)]
+    + [f"count: {t.replace('_', ' ')}" for t in FEATURE_TYPES]
+    + ["elongation", "hole size / part size", "bolt-circle flag", "cut area fraction",
+       "through-depth fraction", "largest-feature share", "nesting", "mean feature aspect"]
+)
+PROCESS_NAMES = (
+    [f"time share: {op.replace('_', ' ')}" for op in OPS]
+    + [f"has: {op.replace('_', ' ')}" for op in OPS]
+    + [f"count: {op.replace('_', ' ')} ops" for op in OPS]
+    + ["number of tools", "tool changes"]
+)
+FEATURE_NAMES = GEOMETRY_NAMES + PROCESS_NAMES   # 46 + 29 = 75
+
+
 def scale_vector(stock, summary):
     D = stock.depth()
     h, w = D.shape

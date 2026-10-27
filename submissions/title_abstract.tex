@@ -1,0 +1,55 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[a4paper,margin=2.3cm]{geometry}
+\usepackage{mathptmx}
+\usepackage[T1]{fontenc}
+\usepackage{microtype}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage[hidelinks]{hyperref}
+\pagestyle{empty}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt}
+\definecolor{rule}{HTML}{8A6418}
+
+\begin{document}
+
+\begin{center}
+{\small\scshape Vellore Institute of Technology, Chennai \quad$\cdot$\quad School of Mechanical Engineering}\\[2pt]
+{\small BMEE401L \;--\; Computer Integrated Manufacturing \;--\; Course Project}
+
+\vspace{14pt}
+{\color{rule}\rule{\linewidth}{0.6pt}}
+\vspace{6pt}
+
+{\LARGE\bfseries NC-Archaeologist}\\[6pt]
+{\large Recovering Machined Geometry and Group-Technology Part Families\\[2pt] from Legacy CNC Programs}
+
+\vspace{6pt}
+{\color{rule}\rule{\linewidth}{0.6pt}}
+\end{center}
+
+\vspace{4pt}
+\textbf{\large Team Members}
+
+\begin{tabular}{@{}>{\raggedright}p{6.5cm}l@{}}
+\toprule
+\textbf{Name} & \textbf{Registration Number} \\
+\midrule
+Sanjit Patibanda & 24BME1069 \\
+\bottomrule
+\end{tabular}
+
+\vspace{10pt}
+\textbf{\large Abstract}
+
+Machine shops accumulate thousands of CNC part programs whose original CAD models have been lost when design systems were replaced, suppliers changed or programmers retired. Such archives cannot be searched, reused or organised for Group Technology (GT), because comparing the G-code text fails: the same part can be written for different controllers, in millimetres or inches, with absolute or incremental moves, and clamped at any orientation.
+
+This project presents \textbf{NC-Archaeologist}, a software system that works from the G-code alone. A dialect-tolerant interpreter reads each program, including parametric and macro programming, and a 2.5D dexel simulation of material removal rebuilds the machined part. Missing cutter diameters are inferred from the toolpath geometry. The system then recognises machining features such as holes, pockets, slots, steps and bolt circles, generates a process sheet with operations, tools and cycle time, and computes a rotation-invariant fingerprint of the recovered geometry and process. Programs are grouped into GT part families by clustering these fingerprints, and an interactive web dashboard shows the recovered parts in 3D, replays the machining and finds similar programs.
+
+On a held-out benchmark of 600 programs from 8 part families written in four controller dialects, the recovered parts match the design intent with a removed-volume IoU of 0.999 when tool sizes are known, and part families are discovered with an adjusted Rand index of 0.80, compared with 0.07 for text-based comparison. Similar-program retrieval achieves a precision@5 of 0.94. The system was also tested on 15 unmodified open-source LinuxCNC programs, 13 of which were analysed, with results matching what each file states. The work connects the CIM chain in reverse, from the CNC program back to geometry, process plan and part family.
+
+\vspace{4pt}
+\textbf{Keywords:} Computer-integrated manufacturing, G-code, CNC part programming, Group Technology, dexel simulation, CAPP, part family formation
+
+\end{document}

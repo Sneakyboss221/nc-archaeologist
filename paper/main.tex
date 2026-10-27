@@ -40,8 +40,11 @@ Rand index of \FullARI{} and retrieval reaches precision@5 of \FullPATFIVE{}.
 Both are well above text-based baselines (ARI \TextRawARI{}). On \RealN{}
 open-source LinuxCNC programs not produced by our generator, \RealAnalysed{} are
 analysed, including parametric and macro programs, and recognisable parts are
-recovered. To the best of our knowledge, this is the first approach that forms
-GT part families directly from subtractive CNC programs.
+recovered. When part of an archive is already labelled, an XGBoost classifier
+trained on the fingerprints assigns held-out programs to their family with
+\XgbAcc{} accuracy, against \XgbTextAcc{} when trained on the G-code text. To
+the best of our knowledge, this is the first approach that forms GT part
+families directly from subtractive CNC programs.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -87,7 +90,9 @@ without tool comments, and a stock-footprint estimate from the facing toolpath;
 \item multi-level, nesting-aware recognition of holes, pockets, slots, steps
 and island pockets on the recovered part, plus an automatically generated process sheet;
 \item a rotation- and translation-invariant fingerprint combining recovered
-geometry with process content, used for GT family discovery and similarity search;
+geometry with process content, used for unsupervised GT family discovery,
+similarity search, and supervised family classification with XGBoost,
+including an analysis of which features drive the families;
 \item a benchmark of \NProg{} programs in four controller dialects with ground
 truth, plus hand-written programs that exercise vendor-specific constructs.
 \end{enumerate}
@@ -237,6 +242,19 @@ agglomerative clustering~\cite{ward1963}, with $k$ chosen by the silhouette
 coefficient~\cite{rousseeuw1987} when unknown. HDBSCAN~\cite{campello2013,mcinnes2017} provides density-based families and flags
 unusual programs. Similarity search uses cosine $k$-NN, and the archive map
 uses t-SNE~\cite{vandermaaten2008}.
+
+\subsection{Supervised family classification}
+Legacy archives are usually unlabelled, which is why families are discovered
+by clustering. A shop may, however, already know the family of part of its
+archive. For that case we train a gradient-boosted tree ensemble,
+XGBoost~\cite{chen2016}, on the raw 75-dimensional fingerprints (trees need no
+scaling) to predict the family of new programs, with a class probability as
+confidence. Hyper-parameters (tree depth $\{3,4,6\}$, number of trees
+$\{200,400\}$, learning rate $\{0.05,0.1\}$; row and column subsampling 0.8)
+are chosen by stratified 5-fold cross-validation on the development set only.
+The selected model is retrained on the whole development set and evaluated
+once on the held-out test set. Gain-based feature importance shows which
+parts of the fingerprint the families depend on.
 
 \subsection{Implementation and interactive dashboard}
 The system is written in Python (about 3,800 lines, using NumPy, SciPy and
@@ -409,6 +427,56 @@ dialects. Dialects mix within each family.}
 \label{fig:conf}
 \end{figure}
 
+\subsection{Supervised classification with XGBoost}
+Cross-validation on the development set selected depth~\XgbDepth{},
+\XgbTrees{} trees and learning rate \XgbLR{} (CV accuracy \XgbCV{}\,$\pm$\,\XgbCVsd{}).
+On the held-out test set the classifier reaches \XgbAcc{} accuracy and macro-F1
+\XgbFOne{} (\XgbErrors{} errors in \NProg{} programs). The correct family is
+in its top two in \XgbTopTwo{} of cases, and accuracy ranges from \XgbDialectMin{}
+to \XgbDialectMax{} across the four dialects. Table~\ref{tab:xgb} compares it
+with baselines on the same split. Trained on G-code text instead of the
+fingerprint, the same model reaches only \XgbTextAcc{}, so the recovered
+representation matters even with labels. A 1-nearest-neighbour classifier on
+the fingerprint reaches \XgbKnnAcc{}. The geometry block alone
+(\XgbGeoAcc{}) is as accurate as the full fingerprint; the difference is two
+to three programs and within run-to-run variation.
+
+\begin{table}[t]
+\caption{Supervised family classification (held-out test set)}
+\label{tab:xgb}
+\centering\footnotesize
+\begin{tabular}{lcc}
+\toprule
+classifier and input & accuracy & macro-F1 \\
+\midrule
+\XgbRows
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.9\columnwidth]{figs/xgb_importance.pdf}
+\caption{XGBoost gain-based feature importance (top 12 of 75 fingerprint features).}
+\label{fig:xgbimp}
+\end{figure}
+
+Feature importance (Fig.~\ref{fig:xgbimp}) attributes \XgbImpProcess{} of the
+total gain to the process block and \XgbImpCounts{} to recognised feature
+counts, followed by the radial depth profile (\XgbImpRadial{}) and shape terms
+(\XgbImpShape{}). The single most informative feature is the
+\emph{\XgbTopFeature{}}. Hu moments contribute only \XgbImpHu{}: they keep the
+fingerprint rotation-invariant, but the classifier separates these families
+mainly by what features exist and how they are machined. Mean confidence is
+\XgbConfRight{} on correct predictions and \XgbConfWrong{} on errors, so a low
+probability is a useful signal for manual review. On the LinuxCNC programs,
+which belong to none of the trained families, mean confidence falls to
+\XgbRealConf{} (\XgbTestConf{} on the test set). As a closed-set classifier,
+however, it still assigns the lathe program to a family with confidence
+\XgbLatheConf{}. Detecting new part types therefore relies on the fingerprint
+similarity to the archive, as in the dashboard, not on classifier
+confidence alone.
+
 \subsection{Dialect invariance}
 Of the top-5 neighbours, \CrossDialectShare{} come from a \emph{different}
 dialect than the query, and \CrossDialectPrec{} of those belong to the correct
@@ -509,6 +577,9 @@ to real files, but they have no family labels. Quantitative validation on a
 labelled shop archive is the most important next step.
 \item \textbf{2.5D model.} Height maps cannot represent undercuts, and the
 system targets 3-axis prismatic parts.
+\item \textbf{Supervised classifier.} XGBoost needs labelled programs and only
+knows the families it was trained on; its confidence alone does not detect
+new part types.
 \item \textbf{Unknown stock and cutters.} Stock size is inferred from facing
 when present. Drill diameters cannot be inferred from geometry. Cutter
 compensation is flagged rather than resolved.
@@ -561,6 +632,7 @@ record of a part is its G-code.
 \bibitem{campello2013} R.~J. G.~B. Campello, D.~Moulavi, and J.~Sander, ``Density-based clustering based on hierarchical density estimates,'' in \emph{Proc. PAKDD}, LNCS 7819, 2013, pp.~160--172.
 \bibitem{mcinnes2017} L.~McInnes, J.~Healy, and S.~Astels, ``hdbscan: Hierarchical density based clustering,'' \emph{J. Open Source Software}, vol.~2, no.~11, p.~205, 2017.
 \bibitem{vandermaaten2008} L.~van~der~Maaten and G.~Hinton, ``Visualizing data using t-SNE,'' \emph{J. Machine Learning Research}, vol.~9, pp.~2579--2605, 2008.
+\bibitem{chen2016} T.~Chen and C.~Guestrin, ``XGBoost: A scalable tree boosting system,'' in \emph{Proc. 22nd ACM SIGKDD Int. Conf. Knowledge Discovery and Data Mining}, 2016, pp.~785--794.
 \bibitem{pedregosa2011} F.~Pedregosa \emph{et al.}, ``Scikit-learn: Machine learning in Python,'' \emph{J. Machine Learning Research}, vol.~12, pp.~2825--2830, 2011.
 \bibitem{salton1988} G.~Salton and C.~Buckley, ``Term-weighting approaches in automatic text retrieval,'' \emph{Information Processing \& Management}, vol.~24, no.~5, pp.~513--523, 1988.
 \bibitem{hubert1985} L.~Hubert and P.~Arabie, ``Comparing partitions,'' \emph{J. Classification}, vol.~2, no.~1, pp.~193--218, 1985.

@@ -18,3 +18,8 @@ texput.log
 
 # Local tooling
 .claude/
+
+# dev-set fingerprints (rebuild: python -m ncarch.pipeline data/programs out_dev)
+out_dev/
+submissions/*.aux
+submissions/*.log

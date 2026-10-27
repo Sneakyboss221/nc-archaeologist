@@ -286,4 +286,13 @@ Yes. Type or edit a program in the Playground, or upload any `.nc` file.
 It compares the distance to the family centre with the family's own members. Comment-free programs with guessed drill sizes sit a bit further out, but they still go to the right family.
 
 **70. What libraries did you use?**
-Python: NumPy, SciPy, scikit-learn, trimesh, FastAPI. (Perimeter and Hu moments are implemented directly in NumPy.) Web: Three.js (3D) and Plotly (charts). The paper is in LaTeX (IEEEtran).
+Python: NumPy, SciPy, scikit-learn, XGBoost, trimesh, FastAPI. (Perimeter and Hu moments are implemented directly in NumPy.) Web: Three.js (3D) and Plotly (charts). The paper is in LaTeX (IEEEtran).
+
+**71. Where do you use XGBoost, and why?**
+For the case where some programs are already labelled. It's trained on the fingerprints of the 600 development programs (tuned with 5-fold cross-validation: depth 3, 400 trees, learning rate 0.05) and tested once on the 600 held-out programs: **98.3% accuracy**, 99.5% top-2, 10 mistakes in 600. On G-code text the same model gets 75.2%.
+
+**72. What does the XGBoost feature importance show?**
+The families depend most on recognised feature counts (number of circular pockets, island pockets, pockets) and on process counts (slotting and pocketing operations), then the radial depth profile. Hu moments contribute only about 1.5%: they keep the fingerprint rotation-invariant, but the classifier mainly uses what features exist and how they're machined.
+
+**73. Isn't XGBoost better than your clustering?**
+They do different jobs. Clustering needs **no labels**, which is the normal situation for a legacy archive. XGBoost needs labelled examples. They're complementary. Note too that XGBoost only knows the families it was trained on: it gave a lathe program a confident wrong family, so new part types are detected with the fingerprint similarity, not with XGBoost.
